@@ -19,16 +19,16 @@ class DatabaseSeeder extends Seeder
         // Create admin user
         User::create([
             'name' => 'Administrator',
-            'email' => 'admin@sukratravel.com',
-            'password' => Hash::make('admin123'),
+            'email' => 'admin@gmail.com',
+            'password' => Hash::make('123'),
             'role' => 'admin',
         ]);
 
         // Create super admin user
         User::create([
             'name' => 'Super Administrator',
-            'email' => 'superadmin@sukratravel.com',
-            'password' => Hash::make('super123'),
+            'email' => 'superadmin@gmail.com',
+            'password' => Hash::make('123'),
             'role' => 'super_admin',
         ]);
 

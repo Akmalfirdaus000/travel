@@ -20,7 +20,7 @@ class PelangganFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'no_telp' => fake()->phoneNumber(),
+            'no_telp' => fake()->regexify('08[0-9]{8,11}'),
             'alamat' => fake()->address(),
             'jenis_kelamin' => fake()->randomElement(['L', 'P']),
         ];

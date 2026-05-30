@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Pelanggan;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -19,8 +18,8 @@ class PelangganSeeder extends Seeder
         $users = [
             [
                 'name' => 'Budi Santoso',
-                'email' => 'budi@example.com',
-                'password' => Hash::make('password'),
+                'email' => 'budi@gmail.com',
+                'password' => Hash::make('123'),
                 'role' => 'pelanggan',
                 'no_telp' => '081234567890',
                 'alamat' => 'Jl. Merdeka No. 10, Padang',
@@ -28,8 +27,8 @@ class PelangganSeeder extends Seeder
             ],
             [
                 'name' => 'Siti Rahayu',
-                'email' => 'siti@example.com',
-                'password' => Hash::make('password'),
+                'email' => 'siti@gmail.com',
+                'password' => Hash::make('123'),
                 'role' => 'pelanggan',
                 'no_telp' => '081234567891',
                 'alamat' => 'Jl. Sudirman No. 25, Bukittinggi',
@@ -37,8 +36,8 @@ class PelangganSeeder extends Seeder
             ],
             [
                 'name' => 'Ahmad Fauzi',
-                'email' => 'ahmad@example.com',
-                'password' => Hash::make('password'),
+                'email' => 'ahmad@gmail.com',
+                'password' => Hash::make('123'),
                 'role' => 'pelanggan',
                 'no_telp' => '081234567892',
                 'alamat' => 'Jl. Gatot Subroto No. 5, Pekanbaru',

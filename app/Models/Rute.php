@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\RuteFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Rute extends Model
 {
-    /** @use HasFactory<\Database\Factories\RuteFactory> */
+    /** @use HasFactory<RuteFactory> */
     use HasFactory;
 
     protected $table = 'rute';

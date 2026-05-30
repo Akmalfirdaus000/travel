@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\PelangganFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Pelanggan extends Model
 {
-    /** @use HasFactory<\Database\Factories\PelangganFactory> */
+    /** @use HasFactory<PelangganFactory> */
     use HasFactory;
 
     protected $table = 'pelanggan';

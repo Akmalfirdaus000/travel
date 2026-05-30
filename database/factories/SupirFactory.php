@@ -19,7 +19,7 @@ class SupirFactory extends Factory
     {
         return [
             'nama_supir' => fake()->name(),
-            'no_telp_supir' => fake()->phoneNumber(),
+            'no_telp_supir' => fake()->regexify('08[0-9]{8,11}'),
             'status' => fake()->randomElement(['tersedia', 'bertugas', 'izin']),
         ];
     }

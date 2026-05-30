@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use Database\Factories\SupirFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Supir extends Model
 {
-    /** @use HasFactory<\Database\Factories\SupirFactory> */
+    /** @use HasFactory<SupirFactory> */
     use HasFactory;
 
     protected $table = 'supir';
