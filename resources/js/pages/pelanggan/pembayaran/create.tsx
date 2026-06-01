@@ -1,23 +1,18 @@
 import { Head, Link, useForm } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import {
     ArrowLeft,
-    ArrowRight,
-    Bus,
-    Calendar,
-    CheckCircle,
-    Clock,
     FileText,
-    IndianRupee,
-    MapPin,
     Receipt,
     Upload,
-    Users,
     XCircle,
+    Building2,
+    Info,
+    CheckCircle2
 } from 'lucide-react';
 
 interface Pemesanan {
@@ -43,7 +38,7 @@ interface Pemesanan {
             nama_supir: string;
         };
     };
-    detailPemesanan: Array<{
+    detailPemesanan?: Array<{
         nomor_kursi: number;
     }>;
     pembayaran?: {
@@ -73,19 +68,31 @@ export default function PembayaranCreate({ pemesanan, existingPayment = false }:
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const formData = new FormData();
-        formData.append('pemesanan_id', String(data.pemesanan_id));
-        if (data.pembayaran_id) {
-            formData.append('pembayaran_id', String(data.pembayaran_id));
-        }
-        if (data.bukti_transfer) {
-            formData.append('bukti_transfer', data.bukti_transfer);
-        }
 
-        post('/pelanggan/pembayaran', {
-            forceFormData: true,
-            data: formData,
-        });
+        // If updating existing payment, use PUT method
+        if (data.pembayaran_id) {
+            const formData = new FormData();
+            if (data.bukti_transfer) {
+                formData.append('bukti_transfer', data.bukti_transfer);
+            }
+
+            router.put(`/pelanggan/pembayaran/${data.pembayaran_id}`, {
+                forceFormData: true,
+                data: formData,
+            });
+        } else {
+            // New payment, use POST method
+            const formData = new FormData();
+            formData.append('pemesanan_id', String(data.pemesanan_id));
+            if (data.bukti_transfer) {
+                formData.append('bukti_transfer', data.bukti_transfer);
+            }
+
+            post('/pelanggan/pembayaran', {
+                forceFormData: true,
+                data: formData,
+            });
+        }
     };
 
     const formatRupiah = (price: number) => {
@@ -108,118 +115,117 @@ export default function PembayaranCreate({ pemesanan, existingPayment = false }:
 
     return (
         <>
-            <Head title={`Upload Bukti Pembayaran - ${pemesanan.kode_booking}`} />
-            <div className="flex flex-1 flex-col gap-4 p-4">
+            <Head title={`Pembayaran - ${pemesanan.kode_booking}`} />
+            <div className="flex flex-1 flex-col gap-6 p-6 max-w-5xl mx-auto w-full">
                 {/* Back Button */}
-                <Button asChild variant="ghost" className="w-fit gap-2">
+                <Button asChild variant="ghost" className="w-fit gap-2 -ml-3 text-muted-foreground hover:text-foreground">
                     <Link href={`/pelanggan/pemesanan/${pemesanan.id}`}>
                         <ArrowLeft className="h-4 w-4" />
                         Kembali ke Detail
                     </Link>
                 </Button>
 
-                <h1 className="text-2xl font-bold text-gray-900">Upload Bukti Pembayaran</h1>
+                <div className="mb-2">
+                    <h1 className="text-3xl font-bold text-foreground tracking-tight">Konfirmasi Pembayaran</h1>
+                    <p className="text-muted-foreground mt-1">Selesaikan pembayaran untuk mengamankan tiket perjalanan Anda.</p>
+                </div>
 
-                <div className="grid gap-4 lg:grid-cols-3">
-                    {/* Upload Form */}
-                    <div className="lg:col-span-2">
-                        <Card>
-                            <CardHeader>
+                <div className="grid gap-8 lg:grid-cols-3">
+                    {/* Left Column: Upload Form */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <Card className="shadow-sm border-muted">
+                            <CardHeader className="bg-muted/10 border-b border-muted">
                                 <CardTitle className="flex items-center gap-2">
-                                    <Receipt className="h-5 w-5" />
+                                    <Receipt className="h-5 w-5 text-primary" />
                                     {existingPayment ? 'Update Bukti Transfer' : 'Upload Bukti Transfer'}
                                 </CardTitle>
                                 <CardDescription>
                                     {existingPayment
-                                        ? 'Upload ulang bukti transfer jika ada kesalahan.'
-                                        : 'Upload bukti transfer setelah melakukan pembayaran.'}
+                                        ? 'Perbarui bukti transfer Anda jika sebelumnya ditolak atau terdapat kesalahan.'
+                                        : 'Mohon upload struk bukti transfer setelah Anda melakukan pembayaran ke rekening kami.'}
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                <form onSubmit={handleSubmit} className="space-y-4">
-                                    <div>
-                                        <Label htmlFor="bukti_transfer">
-                                            Bukti Transfer *{' '}
-                                            {existingPayment && (
-                                                <span className="text-sm text-gray-500">(kosongkan jika tidak ingin mengubah)</span>
-                                            )}
+                            <CardContent className="pt-6">
+                                <form onSubmit={handleSubmit} className="space-y-6">
+                                    <div className="space-y-3">
+                                        <Label htmlFor="bukti_transfer" className="text-sm font-semibold">
+                                            File Bukti Transfer <span className="text-destructive">*</span>
                                         </Label>
-                                        <div className="mt-2">
+                                        <div className="rounded-xl border-2 border-dashed border-muted p-8 text-center bg-muted/5 hover:bg-muted/10 transition-colors">
                                             <Input
                                                 id="bukti_transfer"
                                                 type="file"
                                                 accept="image/*"
                                                 onChange={handleFileChange}
-                                                error={errors.bukti_transfer}
-                                                className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                                className="hidden"
                                             />
-                                            {errors.bukti_transfer && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.bukti_transfer}</p>
-                                            )}
-                                            <p className="mt-1 text-xs text-gray-500">
-                                                Format: JPG, PNG, JPEG. Maksimal 2MB.
-                                            </p>
+                                            <Label htmlFor="bukti_transfer" className="cursor-pointer flex flex-col items-center">
+                                                <div className="rounded-full bg-primary/10 p-4 mb-4">
+                                                    <Upload className="h-6 w-6 text-primary" />
+                                                </div>
+                                                <span className="font-semibold text-foreground">Klik untuk mengunggah file</span>
+                                                <span className="text-sm text-muted-foreground mt-1">atau seret file ke area ini</span>
+                                                <span className="text-xs text-muted-foreground/70 mt-4">Format: JPG, PNG, JPEG. Maksimal 2MB.</span>
+                                            </Label>
                                         </div>
+                                        {errors.bukti_transfer && (
+                                            <p className="mt-2 text-sm font-medium text-destructive">{errors.bukti_transfer}</p>
+                                        )}
                                     </div>
 
                                     {data.bukti_transfer && (
-                                        <Card className="border-dashed">
-                                            <CardContent className="p-4">
-                                                <div className="flex items-center gap-3">
-                                                    <FileText className="h-8 w-8 text-blue-600" />
-                                                    <div className="flex-1">
-                                                        <p className="font-medium">{data.bukti_transfer.name}</p>
-                                                        <p className="text-sm text-gray-500">
+                                        <Card className="border-primary/20 bg-primary/5 shadow-none">
+                                            <CardContent className="p-4 flex items-center justify-between">
+                                                <div className="flex items-center gap-3 overflow-hidden">
+                                                    <div className="bg-primary/20 p-2 rounded text-primary">
+                                                        <FileText className="h-5 w-5" />
+                                                    </div>
+                                                    <div className="truncate">
+                                                        <p className="font-medium text-sm text-foreground truncate">{data.bukti_transfer.name}</p>
+                                                        <p className="text-xs text-muted-foreground">
                                                             {(data.bukti_transfer.size / 1024).toFixed(2)} KB
                                                         </p>
                                                     </div>
-                                                    <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => setData('bukti_transfer', null)}
-                                                    >
-                                                        <XCircle className="h-4 w-4" />
-                                                    </Button>
                                                 </div>
-                                            </CardContent>
-                                        </Card>
-                                    )}
-
-                                    {existingPayment && pemesanan.pembayaran?.bukti_transfer && (
-                                        <Card className="border-dashed bg-gray-50">
-                                            <CardContent className="p-4">
-                                                <p className="text-sm text-gray-500 mb-2">Bukti Transfer saat ini:</p>
                                                 <Button
-                                                    asChild
-                                                    size="sm"
-                                                    variant="outline"
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => setData('bukti_transfer', null)}
+                                                    className="text-muted-foreground hover:text-destructive flex-shrink-0"
                                                 >
-                                                    <a
-                                                        href={`/storage/${pemesanan.pembayaran.bukti_transfer}`}
-                                                        target="_blank"
-                                                    >
-                                                        <FileText className="h-4 w-4" />
-                                                        Lihat Bukti
-                                                    </a>
+                                                    <XCircle className="h-5 w-5" />
                                                 </Button>
                                             </CardContent>
                                         </Card>
                                     )}
 
-                                    <div className="flex gap-2">
+                                    {existingPayment && pemesanan.pembayaran?.bukti_transfer && pemesanan.pembayaran?.bukti_transfer !== 'undefined' && !data.bukti_transfer && (
+                                        <div className="space-y-3">
+                                            <p className="text-sm font-medium text-muted-foreground">Bukti transfer saat ini:</p>
+                                            <div className="rounded-xl border border-muted overflow-hidden bg-muted/10 p-2 max-w-sm">
+                                                <img
+                                                    src={`/storage/${pemesanan.pembayaran.bukti_transfer}`}
+                                                    alt="Bukti Transfer"
+                                                    className="w-full h-auto rounded"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="flex gap-3 pt-4 border-t border-muted">
                                         <Button type="button" variant="outline" className="flex-1" asChild>
                                             <Link href={`/pelanggan/pemesanan/${pemesanan.id}`}>Batal</Link>
                                         </Button>
-                                        <Button type="submit" className="flex-1 gap-2" disabled={processing}>
+                                        <Button type="submit" className="flex-1 gap-2" disabled={processing || (!data.bukti_transfer && !existingPayment)}>
                                             {processing ? (
                                                 'Memproses...'
                                             ) : existingPayment ? (
-                                                'Update Bukti'
+                                                'Simpan Perubahan'
                                             ) : (
                                                 <>
                                                     <Upload className="h-4 w-4" />
-                                                    Upload Bukti
+                                                    Kirim Bukti Pembayaran
                                                 </>
                                             )}
                                         </Button>
@@ -229,75 +235,94 @@ export default function PembayaranCreate({ pemesanan, existingPayment = false }:
                         </Card>
                     </div>
 
-                    {/* Sidebar Info */}
-                    <div className="space-y-4">
+                    {/* Right Column: Sidebar Info */}
+                    <div className="space-y-6">
                         {/* Order Summary */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-base">Ringkasan Pesanan</CardTitle>
+                        <Card className="shadow-sm border-muted">
+                            <CardHeader className="bg-muted/10 border-b border-muted pb-4">
+                                <CardTitle className="text-base flex items-center justify-between">
+                                    Ringkasan Pesanan
+                                    <span className="text-xs font-mono bg-background px-2 py-1 rounded border border-border text-muted-foreground">{pemesanan.kode_booking}</span>
+                                </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-3">
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Kode Booking</span>
-                                    <span className="font-semibold">{pemesanan.kode_booking}</span>
-                                </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Rute</span>
-                                    <span className="font-semibold">
+                            <CardContent className="space-y-4 pt-4">
+                                <div className="space-y-1">
+                                    <p className="text-xs text-muted-foreground">Rute</p>
+                                    <p className="font-semibold text-sm">
                                         {pemesanan.jadwal.rute.kota_asal} → {pemesanan.jadwal.rute.kota_tujuan}
-                                    </span>
+                                    </p>
                                 </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Tanggal</span>
-                                    <span className="font-semibold">{formatDate(pemesanan.jadwal.tanggal_berangkat)}</span>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <p className="text-xs text-muted-foreground">Tanggal</p>
+                                        <p className="font-semibold text-sm">{formatDate(pemesanan.jadwal.tanggal_berangkat)}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-xs text-muted-foreground">Jam</p>
+                                        <p className="font-semibold text-sm">{pemesanan.jadwal.jam_berangkat.substring(0,5)} WIB</p>
+                                    </div>
                                 </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Jam</span>
-                                    <span className="font-semibold">{pemesanan.jadwal.jam_berangkat}</span>
+                                <div className="space-y-1">
+                                    <p className="text-xs text-muted-foreground">Kursi ({pemesanan.detailPemesanan?.length || 0})</p>
+                                    <p className="font-semibold text-sm">
+                                        {(pemesanan.detailPemesanan || []).map((d) => d.nomor_kursi).sort((a, b) => a - b).join(', ')}
+                                    </p>
                                 </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-600">Kursi</span>
-                                    <span className="font-semibold">
-                                        {pemesanan.detailPemesanan.map((d) => d.nomor_kursi).sort((a, b) => a - b).join(', ')}
-                                    </span>
-                                </div>
-                                <div className="border-t pt-3 flex justify-between">
-                                    <span className="font-semibold">Total</span>
-                                    <span className="font-bold text-blue-600">
+                                <div className="border-t border-muted pt-4 flex flex-col gap-1">
+                                    <p className="text-sm font-medium text-muted-foreground">Total yang harus dibayar</p>
+                                    <p className="text-2xl font-black text-primary">
                                         {formatRupiah(pemesanan.total_bayar)}
-                                    </span>
+                                    </p>
                                 </div>
                             </CardContent>
                         </Card>
 
                         {/* Bank Info */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-base">Rekening Tujuan</CardTitle>
+                        <Card className="shadow-sm border-muted">
+                            <CardHeader className="bg-muted/10 border-b border-muted pb-3">
+                                <CardTitle className="text-base flex items-center gap-2">
+                                    <Building2 className="h-4 w-4" />
+                                    Rekening Tujuan
+                                </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-3 text-sm">
-                                <div>
-                                    <p className="font-semibold">Bank BRI</p>
-                                    <p className="text-gray-600">1234-5678-9000</p>
-                                    <p className="text-gray-600">a.n CV Baruna Travel</p>
+                            <CardContent className="space-y-4 pt-4">
+                                <div className="flex items-start gap-3 p-3 rounded-lg border border-border bg-background">
+                                    <div className="bg-blue-100 text-blue-700 font-bold p-2 rounded text-xs w-12 text-center shrink-0">BRI</div>
+                                    <div>
+                                        <p className="font-mono font-bold tracking-wider">1234-5678-9000</p>
+                                        <p className="text-xs text-muted-foreground mt-0.5">a.n CV Baruna Travel</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="font-semibold">Bank Mandiri</p>
-                                    <p className="text-gray-600">0987-6543-2100</p>
-                                    <p className="text-gray-600">a.n CV Baruna Travel</p>
+                                <div className="flex items-start gap-3 p-3 rounded-lg border border-border bg-background">
+                                    <div className="bg-yellow-100 text-yellow-700 font-bold p-2 rounded text-xs w-12 text-center shrink-0">BCA</div>
+                                    <div>
+                                        <p className="font-mono font-bold tracking-wider">0987-6543-2100</p>
+                                        <p className="text-xs text-muted-foreground mt-0.5">a.n CV Baruna Travel</p>
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
 
                         {/* Note */}
-                        <Card className="bg-blue-50 border-blue-200">
-                            <CardContent className="p-4 text-sm text-blue-800">
-                                <p className="font-semibold mb-2">ℹ️ Catatan:</p>
-                                <ul className="space-y-1">
-                                    <li>• Pastukkan nama & nominal transfer sesuai</li>
-                                    <li>• Upload struk transfer yang jelas</li>
-                                    <li>• Verifikasi membutuhkan 1-24 jam</li>
-                                    <li>• Tiket dapat dicetak setelah lunas</li>
+                        <Card className="bg-primary/5 border-primary/20 shadow-none">
+                            <CardContent className="p-5 text-sm">
+                                <div className="flex items-center gap-2 text-primary font-semibold mb-3">
+                                    <Info className="h-4 w-4" />
+                                    <p>Panduan Pembayaran</p>
+                                </div>
+                                <ul className="space-y-2.5 text-muted-foreground">
+                                    <li className="flex gap-2 items-start">
+                                        <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                                        <span>Transfer sesuai dengan <strong>Total Bayar</strong> hingga 3 digit terakhir.</span>
+                                    </li>
+                                    <li className="flex gap-2 items-start">
+                                        <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                                        <span>Pastikan nama pengirim dan nominal terlihat jelas di struk.</span>
+                                    </li>
+                                    <li className="flex gap-2 items-start">
+                                        <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                                        <span>Proses verifikasi memakan waktu 5-30 menit pada jam kerja.</span>
+                                    </li>
                                 </ul>
                             </CardContent>
                         </Card>

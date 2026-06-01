@@ -25,6 +25,7 @@ class UpdateArmadaRequest extends FormRequest
         $armada = $this->route('armada');
 
         return [
+            'supir_id' => 'required|exists:supir,id',
             'plat_nomor' => 'required|string|max:15|unique:armada,plat_nomor,'.$armada->id,
             'tipe_mobil' => 'required|string|max:50',
             'kapasitas_kursi' => 'required|integer|min:1|max:20',
@@ -39,6 +40,8 @@ class UpdateArmadaRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'supir_id.required' => 'Supir wajib dipilih.',
+            'supir_id.exists' => 'Supir tidak valid.',
             'plat_nomor.required' => 'Plat nomor wajib diisi.',
             'plat_nomor.unique' => 'Plat nomor sudah terdaftar.',
             'tipe_mobil.required' => 'Tipe mobil wajib diisi.',

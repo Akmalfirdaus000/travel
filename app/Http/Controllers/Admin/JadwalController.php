@@ -34,13 +34,11 @@ class JadwalController extends Controller
      */
     public function create(): Response
     {
-        $rute = Rute::all();
-        $supir = Supir::where('status', 'tersedia')->get();
-        $armada = Armada::all();
+        $rutes = Rute::all();
+        $armada = Armada::with(['supir'])->get();
 
         return Inertia::render('admin/jadwal/create', [
-            'rute' => $rute,
-            'supir' => $supir,
+            'rutes' => $rutes,
             'armada' => $armada,
         ]);
     }
@@ -74,14 +72,12 @@ class JadwalController extends Controller
     public function edit(Jadwal $jadwal): Response
     {
         $jadwal->load(['rute', 'supir', 'armada']);
-        $rute = Rute::all();
-        $supir = Supir::all();
-        $armada = Armada::all();
+        $rutes = Rute::all();
+        $armada = Armada::with(['supir'])->get();
 
         return Inertia::render('admin/jadwal/edit', [
             'jadwal' => $jadwal,
-            'rute' => $rute,
-            'supir' => $supir,
+            'rutes' => $rutes,
             'armada' => $armada,
         ]);
     }

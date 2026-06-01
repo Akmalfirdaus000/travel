@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { usePage } from '@inertiajs/react';
+import { Fragment } from 'react';
 import {
     BookOpen,
     Bus,
@@ -15,6 +16,8 @@ import {
     FileText,
     BarChart3,
     TrendingUp,
+    CreditCard,
+    Home,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
@@ -28,151 +31,105 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 
+type NavGroup = {
+    title: string;
+    items: NavItem[];
+};
+
 // Menu Pelanggan
-const pelangganNavItems: NavItem[] = [
+const pelangganNavGroups: NavGroup[] = [
     {
-        title: 'Jadwal Travel',
-        href: '/pelanggan/jadwal',
-        icon: Bus,
+        title: 'Utama',
+        items: [
+            // { title: 'Beranda', href: '/', icon: Home },
+            { title: 'Dashboard', href: '/pelanggan/dashboard', icon: LayoutDashboard },
+        ],
     },
     {
-        title: 'Pemesanan Saya',
-        href: '/pelanggan/pemesanan',
-        icon: Receipt,
+        title: 'Perjalanan',
+        items: [
+            { title: 'Jadwal & Tarif', href: '/pelanggan/jadwal', icon: Bus },
+            { title: 'Pemesanan Saya', href: '/pelanggan/pemesanan', icon: Receipt },
+        ],
+    },
+    {
+        title: 'Transaksi',
+        items: [
+            { title: 'Riwayat Pembayaran', href: '/pelanggan/pembayaran', icon: CreditCard },
+        ],
     },
 ];
 
 // Menu Admin
-const adminNavItems: NavItem[] = [
+const adminNavGroups: NavGroup[] = [
     {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutDashboard,
+        title: 'Utama',
+        items: [
+            { title: 'Dashboard', href: dashboard(), icon: LayoutDashboard },
+        ],
     },
     {
-        title: 'Data Supir',
-        href: '/supir',
-        icon: Users,
+        title: 'Data Master',
+        items: [
+            { title: 'Data Supir', href: '/admin/supir', icon: Users },
+            { title: 'Data Armada', href: '/admin/armada', icon: Car },
+            { title: 'Data Rute', href: '/admin/rute', icon: Route },
+            { title: 'Jadwal Keberangkatan', href: '/admin/jadwal', icon: MapPin },
+            { title: 'Data Pelanggan', href: '/admin/pelanggan', icon: Users },
+        ],
     },
     {
-        title: 'Data Armada',
-        href: '/armada',
-        icon: Car,
-    },
-    {
-        title: 'Data Rute',
-        href: '/rute',
-        icon: Route,
-    },
-    {
-        title: 'Jadwal Keberangkatan',
-        href: '/jadwal',
-        icon: MapPin,
-    },
-    {
-        title: 'Data Pelanggan',
-        href: '/pelanggan',
-        icon: Users,
-    },
-    {
-        title: 'Pemesanan',
-        href: '/pemesanan',
-        icon: Package,
-    },
-    {
-        title: 'Pembayaran',
-        href: '/pembayaran',
-        icon: Receipt,
+        title: 'Transaksi',
+        items: [
+            { title: 'Pemesanan', href: '/admin/pemesanan', icon: Package },
+            { title: 'Pembayaran', href: '/admin/pembayaran', icon: Receipt },
+        ],
     },
 ];
 
 // Menu Super Admin
-const superAdminNavItems: NavItem[] = [
+const superAdminNavGroups: NavGroup[] = [
     {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutDashboard,
-    },
-    {
-        title: 'Laporan',
-        href: '/admin/reports',
-        icon: BarChart3,
-        children: [
+        title: 'Utama',
+        items: [
+            { title: 'Dashboard', href: dashboard(), icon: LayoutDashboard },
             {
-                title: 'Ringkasan',
+                title: 'Laporan',
                 href: '/admin/reports',
-                icon: LayoutDashboard,
-            },
-            {
-                title: 'Pendapatan',
-                href: '/admin/reports/pendapatan',
-                icon: TrendingUp,
-            },
-            {
-                title: 'Pemesanan',
-                href: '/admin/reports/pemesanan',
-                icon: Package,
-            },
-            {
-                title: 'Rute Terpopuler',
-                href: '/admin/reports/rute-terpopuler',
-                icon: Route,
-            },
-            {
-                title: 'Performa Supir',
-                href: '/admin/reports/supir-performa',
-                icon: UserCog,
-            },
-            {
-                title: 'Utilisasi Armada',
-                href: '/admin/reports/armada-utilisasi',
-                icon: Car,
-            },
-            {
-                title: 'Bulanan',
-                href: '/admin/reports/bulanan',
-                icon: FileText,
+                icon: BarChart3,
+                children: [
+                    { title: 'Ringkasan', href: '/admin/reports', icon: LayoutDashboard },
+                    { title: 'Pendapatan', href: '/admin/reports/pendapatan', icon: TrendingUp },
+                    { title: 'Pemesanan', href: '/admin/reports/pemesanan', icon: Package },
+                    { title: 'Rute Terpopuler', href: '/admin/reports/rute-terpopuler', icon: Route },
+                    { title: 'Performa Supir', href: '/admin/reports/supir-performa', icon: UserCog },
+                    { title: 'Utilisasi Armada', href: '/admin/reports/armada-utilisasi', icon: Car },
+                    { title: 'Bulanan', href: '/admin/reports/bulanan', icon: FileText },
+                ],
             },
         ],
     },
     {
-        title: 'Data Supir',
-        href: '/supir',
-        icon: Users,
+        title: 'Data Master',
+        items: [
+            { title: 'Data Supir', href: '/admin/supir', icon: Users },
+            { title: 'Data Armada', href: '/admin/armada', icon: Car },
+            { title: 'Data Rute', href: '/admin/rute', icon: Route },
+            { title: 'Jadwal Keberangkatan', href: '/admin/jadwal', icon: MapPin },
+            { title: 'Data Pelanggan', href: '/admin/pelanggan', icon: Users },
+        ],
     },
     {
-        title: 'Data Armada',
-        href: '/armada',
-        icon: Car,
-    },
-    {
-        title: 'Data Rute',
-        href: '/rute',
-        icon: Route,
-    },
-    {
-        title: 'Jadwal Keberangkatan',
-        href: '/jadwal',
-        icon: MapPin,
-    },
-    {
-        title: 'Data Pelanggan',
-        href: '/pelanggan',
-        icon: Users,
-    },
-    {
-        title: 'Pemesanan',
-        href: '/pemesanan',
-        icon: Package,
-    },
-    {
-        title: 'Pembayaran',
-        href: '/pembayaran',
-        icon: Receipt,
+        title: 'Transaksi',
+        items: [
+            { title: 'Pemesanan', href: '/admin/pemesanan', icon: Package },
+            { title: 'Pembayaran', href: '/admin/pembayaran', icon: Receipt },
+        ],
     },
 ];
 
@@ -193,21 +150,15 @@ export function AppSidebar() {
     const { props } = usePage();
     const user = props.auth?.user;
 
-    let mainNavItems: NavItem[] = [];
+    let navGroups: NavGroup[] = [];
 
     if (user?.role === 'pelanggan') {
-        mainNavItems = pelangganNavItems;
+        navGroups = pelangganNavGroups;
     } else if (user?.role === 'admin') {
-        mainNavItems = adminNavItems;
+        navGroups = adminNavGroups;
     } else if (user?.role === 'super_admin') {
-        mainNavItems = superAdminNavItems;
+        navGroups = superAdminNavGroups;
     }
-
-    const dashboardTitle = user?.role === 'pelanggan'
-        ? 'Pelanggan'
-        : user?.role === 'super_admin'
-          ? 'Super Admin'
-          : 'Admin';
 
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -224,7 +175,12 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} title={dashboardTitle} />
+                {navGroups.map((group, index) => (
+                    <Fragment key={group.title}>
+                        <NavMain items={group.items} title={group.title} />
+                        {index < navGroups.length - 1 && <SidebarSeparator className="mx-4 my-2" />}
+                    </Fragment>
+                ))}
             </SidebarContent>
 
             <SidebarFooter>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreArmadaRequest;
 use App\Http\Requests\UpdateArmadaRequest;
 use App\Models\Armada;
+use App\Models\Supir;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -16,7 +17,7 @@ class ArmadaController extends Controller
      */
     public function index(): Response
     {
-        $armada = Armada::orderBy('id', 'desc')->paginate(10);
+        $armada = Armada::with(['supir'])->orderBy('id', 'desc')->paginate(10);
 
         return Inertia::render('admin/armada/index', [
             'armada' => $armada,
@@ -28,7 +29,12 @@ class ArmadaController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('admin/armada/create');
+        $assignedSupirs = Armada::whereNotNull('supir_id')->pluck('supir_id');
+        $supirs = Supir::whereNotIn('id', $assignedSupirs)->get();
+
+        return Inertia::render('admin/armada/create', [
+            'supirs' => $supirs,
+        ]);
     }
 
     /**
@@ -47,6 +53,7 @@ class ArmadaController extends Controller
      */
     public function show(Armada $armada): Response
     {
+        $armada->load(['supir']);
         return Inertia::render('admin/armada/show', [
             'armada' => $armada,
         ]);
@@ -57,8 +64,14 @@ class ArmadaController extends Controller
      */
     public function edit(Armada $armada): Response
     {
+        $assignedSupirs = Armada::whereNotNull('supir_id')
+            ->where('id', '!=', $armada->id)
+            ->pluck('supir_id');
+        $supirs = Supir::whereNotIn('id', $assignedSupirs)->get();
+
         return Inertia::render('admin/armada/edit', [
             'armada' => $armada,
+            'supirs' => $supirs,
         ]);
     }
 

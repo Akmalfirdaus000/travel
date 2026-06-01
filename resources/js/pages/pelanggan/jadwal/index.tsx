@@ -5,6 +5,21 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
     Bus,
     MapPin,
     Clock,
@@ -14,6 +29,7 @@ import {
     Filter,
     ArrowRight,
     IndianRupee,
+    Ticket,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -82,10 +98,9 @@ export default function JadwalIndex({ jadwal, rute, filters }: JadwalIndexProps)
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('id-ID', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
             day: 'numeric',
+            month: 'long',
+            year: 'numeric',
         });
     };
 
@@ -119,73 +134,129 @@ export default function JadwalIndex({ jadwal, rute, filters }: JadwalIndexProps)
     return (
         <>
             <Head title="Jadwal & Tarif - CV Baruna Travel" />
-            <div className="flex flex-1 flex-col gap-4 p-4">
+            <div className="flex flex-1 flex-col gap-6 p-6 max-w-7xl mx-auto w-full">
                 {/* Header */}
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Jadwal & Tarif</h1>
-                    <p className="text-gray-600">Cari jadwal keberangkatan dan lihat tarif tiket</p>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight text-foreground">Jadwal & Tarif</h1>
+                        <p className="text-lg text-muted-foreground">Cari jadwal keberangkatan dan pesan tiket perjalanan Anda</p>
+                    </div>
+                    
+                    {/* Routes Catalog Modal */}
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button variant="outline" className="gap-2">
+                                <IndianRupee className="h-4 w-4 text-muted-foreground" />
+                                Daftar Harga Rute
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl">
+                            <DialogHeader>
+                                <DialogTitle>Daftar Rute & Tarif</DialogTitle>
+                                <DialogDescription>
+                                    Informasi lengkap rute perjalanan yang tersedia beserta harganya.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="max-h-[60vh] overflow-y-auto pr-2">
+                                <table className="w-full text-sm">
+                                    <thead className="sticky top-0 bg-background/95 backdrop-blur z-10">
+                                        <tr className="border-b">
+                                            <th className="py-3 text-left font-semibold text-muted-foreground">Rute Perjalanan</th>
+                                            <th className="py-3 text-right font-semibold text-muted-foreground">Harga Tiket</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {uniqueRoutes.map((r) => (
+                                            <tr key={r.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
+                                                <td className="py-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <Bus className="h-4 w-4 text-muted-foreground" />
+                                                        <span className="font-medium">
+                                                            {r.kota_asal} → {r.kota_tujuan}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="py-3 text-right font-bold text-foreground">
+                                                    {formatRupiah(r.harga_tiket)}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </DialogContent>
+                    </Dialog>
                 </div>
 
                 {/* Filter Section */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <Filter className="h-5 w-5" />
-                            Cari Jadwal
+                <Card className="border-muted bg-card">
+                    <CardHeader className="pb-3">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                            <Filter className="h-5 w-5 text-muted-foreground" />
+                            Filter Pencarian
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid gap-4 md:grid-cols-4">
-                            <div>
+                        <div className="grid gap-4 md:grid-cols-4 items-end">
+                            <div className="space-y-2">
                                 <Label htmlFor="rute">Rute</Label>
-                                <select
-                                    id="rute"
-                                    value={searchFilters.rute_id}
-                                    onChange={(e) => setSearchFilters({ ...searchFilters, rute_id: e.target.value })}
-                                    className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                <Select
+                                    value={searchFilters.rute_id || 'all'}
+                                    onValueChange={(val) => setSearchFilters({ ...searchFilters, rute_id: val === 'all' ? '' : val })}
                                 >
-                                    <option value="">Semua Rute</option>
-                                    {uniqueRoutes.map((r) => (
-                                        <option key={r.id} value={r.id}>
-                                            {r.kota_asal} → {r.kota_tujuan} ({formatRupiah(r.harga_tiket)})
-                                        </option>
-                                    ))}
-                                </select>
+                                    <SelectTrigger id="rute">
+                                        <SelectValue placeholder="Semua Rute" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Semua Rute</SelectItem>
+                                        {uniqueRoutes.map((r) => (
+                                            <SelectItem key={r.id} value={String(r.id)}>
+                                                {r.kota_asal} → {r.kota_tujuan}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
-                            <div>
+                            <div className="space-y-2">
                                 <Label htmlFor="asal">Kota Asal</Label>
-                                <select
-                                    id="asal"
-                                    value={searchFilters.kota_asal}
-                                    onChange={(e) => setSearchFilters({ ...searchFilters, kota_asal: e.target.value })}
-                                    className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                <Select
+                                    value={searchFilters.kota_asal || 'all'}
+                                    onValueChange={(val) => setSearchFilters({ ...searchFilters, kota_asal: val === 'all' ? '' : val })}
                                 >
-                                    <option value="">Semua Kota</option>
-                                    {citiesAsal.map((city) => (
-                                        <option key={city} value={city}>
-                                            {city}
-                                        </option>
-                                    ))}
-                                </select>
+                                    <SelectTrigger id="asal">
+                                        <SelectValue placeholder="Semua Kota" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Semua Kota</SelectItem>
+                                        {citiesAsal.map((city) => (
+                                            <SelectItem key={city} value={city}>
+                                                {city}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
-                            <div>
+                            <div className="space-y-2">
                                 <Label htmlFor="tujuan">Kota Tujuan</Label>
-                                <select
-                                    id="tujuan"
-                                    value={searchFilters.kota_tujuan}
-                                    onChange={(e) => setSearchFilters({ ...searchFilters, kota_tujuan: e.target.value })}
-                                    className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                <Select
+                                    value={searchFilters.kota_tujuan || 'all'}
+                                    onValueChange={(val) => setSearchFilters({ ...searchFilters, kota_tujuan: val === 'all' ? '' : val })}
                                 >
-                                    <option value="">Semua Kota</option>
-                                    {citiesTujuan.map((city) => (
-                                        <option key={city} value={city}>
-                                            {city}
-                                        </option>
-                                    ))}
-                                </select>
+                                    <SelectTrigger id="tujuan">
+                                        <SelectValue placeholder="Semua Kota" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Semua Kota</SelectItem>
+                                        {citiesTujuan.map((city) => (
+                                            <SelectItem key={city} value={city}>
+                                                {city}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
-                            <div>
-                                <Label htmlFor="tanggal">Tanggal Keberangkatan</Label>
+                            <div className="space-y-2">
+                                <Label htmlFor="tanggal">Tanggal</Label>
                                 <Input
                                     id="tanggal"
                                     type="date"
@@ -195,138 +266,99 @@ export default function JadwalIndex({ jadwal, rute, filters }: JadwalIndexProps)
                                 />
                             </div>
                         </div>
-                        <div className="mt-4 flex gap-2">
-                            <Button onClick={handleFilter} className="gap-2">
+                        <div className="mt-6 flex gap-3">
+                            <Button onClick={handleFilter} className="w-full sm:w-auto gap-2">
                                 <Search className="h-4 w-4" />
                                 Cari Jadwal
                             </Button>
-                            <Button onClick={resetFilters} variant="outline">
-                                Reset
+                            <Button onClick={resetFilters} variant="outline" className="w-full sm:w-auto">
+                                Reset Filter
                             </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Routes Catalog */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <IndianRupee className="h-5 w-5" />
-                            Daftar Rute & Tarif
-                        </CardTitle>
-                        <CardDescription>
-                            Daftar lengkap rute yang tersedia dengan harga tiket
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b bg-gray-50">
-                                        <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-                                            Rute
-                                        </th>
-                                        <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
-                                            Jam Keberangkatan
-                                        </th>
-                                        <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
-                                            Harga Tiket
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {uniqueRoutes.map((r) => (
-                                        <tr key={r.id} className="border-b hover:bg-gray-50">
-                                            <td className="px-4 py-3">
-                                                <div className="flex items-center gap-2">
-                                                    <Bus className="h-4 w-4 text-blue-600" />
-                                                    <span className="font-medium">
-                                                        {r.kota_asal} → {r.kota_tujuan}
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3 text-center">
-                                                <div className="flex justify-center gap-2">
-                                                    <Badge variant="outline">10.00 WIB</Badge>
-                                                    <Badge variant="outline">22.00 WIB</Badge>
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3 text-right font-semibold text-blue-600">
-                                                {formatRupiah(r.harga_tiket)}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* Schedule List */}
                 {jadwal.data.length > 0 ? (
-                    <div className="grid gap-4">
-                        <h2 className="text-lg font-semibold text-gray-900">
-                            Jadwal Tersedia ({jadwal.data.length} jadwal ditemukan)
-                        </h2>
+                    <div className="grid gap-4 mt-2">
+                        <div className="flex items-center justify-between mb-2">
+                            <h2 className="text-xl font-semibold text-foreground tracking-tight">
+                                Hasil Pencarian
+                            </h2>
+                            <Badge variant="secondary" className="px-3 py-1">
+                                {jadwal.data.length} Jadwal ditemukan
+                            </Badge>
+                        </div>
+                        
                         {jadwal.data.map((item) => (
-                            <Card key={item.id} className="overflow-hidden">
+                            <Card key={item.id} className="overflow-hidden hover:shadow-md transition-shadow duration-200">
                                 <CardContent className="p-0">
-                                    <div className="grid md:grid-cols-4">
-                                        <div className="bg-blue-50 p-4 md:col-span-1">
-                                            <div className="mb-3 flex items-center gap-2 text-blue-600">
-                                                <Calendar className="h-5 w-5" />
-                                                <span className="font-semibold">
+                                    <div className="flex flex-col md:flex-row">
+                                        {/* Date & Time Section */}
+                                        <div className="bg-muted/30 p-6 flex flex-col justify-center items-center md:w-48 border-b md:border-b-0 md:border-r border-border shrink-0">
+                                            <div className="text-center mb-3">
+                                                <div className="text-sm font-medium text-muted-foreground flex items-center justify-center gap-1.5 mb-1.5">
+                                                    <Calendar className="h-4 w-4" />
                                                     {formatDate(item.tanggal_berangkat)}
-                                                </span>
+                                                </div>
+                                                <div className="text-4xl font-black tracking-tighter text-foreground">
+                                                    {item.jam_berangkat.substring(0, 5)}
+                                                </div>
                                             </div>
-                                            <div className="mb-3 flex items-center gap-2 text-gray-700">
-                                                <Clock className="h-4 w-4" />
-                                                <span className="text-lg font-bold">{item.jam_berangkat}</span>
-                                            </div>
-                                            <Badge className="bg-green-100 text-green-700">
+                                            <Badge variant={item.available_seats === 0 ? "destructive" : "secondary"} className="w-full justify-center">
                                                 {item.available_seats ?? '?'} Kursi Tersedia
                                             </Badge>
                                         </div>
-                                        <div className="p-4 md:col-span-2">
-                                            <div className="mb-3 flex items-center gap-2">
-                                                <MapPin className="h-5 w-5 text-blue-600" />
-                                                <span className="text-lg font-bold">
-                                                    {item.rute.kota_asal} → {item.rute.kota_tujuan}
-                                                </span>
+                                        
+                                        {/* Route Details Section */}
+                                        <div className="p-6 flex-1 flex flex-col justify-center">
+                                            <div className="flex items-center gap-4 mb-5">
+                                                <span className="text-xl font-bold tracking-tight">{item.rute.kota_asal}</span>
+                                                <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                                                <span className="text-xl font-bold tracking-tight">{item.rute.kota_tujuan}</span>
                                             </div>
-                                            <div className="mb-2 flex items-center gap-4 text-sm text-gray-600">
-                                                <div className="flex items-center gap-1">
-                                                    <Bus className="h-4 w-4" />
-                                                    <span>{item.armada.tipe_mobil}</span>
-                                                    <span className="text-gray-400">({item.armada.plat_nomor})</span>
+                                            
+                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-4 text-sm text-muted-foreground">
+                                                <div className="flex items-center gap-2.5">
+                                                    <Bus className="h-4 w-4 text-primary" />
+                                                    <span className="font-medium text-foreground">{item.armada.tipe_mobil}</span>
                                                 </div>
-                                                <div className="flex items-center gap-1">
-                                                    <Users className="h-4 w-4" />
-                                                    <span>{item.armada.kapasitas_kursi} kursi</span>
+                                                <div className="flex items-center gap-2.5">
+                                                    <Ticket className="h-4 w-4 text-primary" />
+                                                    <span className="font-medium text-foreground">{item.armada.plat_nomor}</span>
                                                 </div>
-                                                <div className="flex items-center gap-1">
-                                                    <Users className="h-4 w-4" />
-                                                    <span>{item.supir.nama_supir}</span>
+                                                <div className="flex items-center gap-2.5">
+                                                    <Users className="h-4 w-4 text-primary" />
+                                                    <span className="font-medium text-foreground">{item.supir.nama_supir}</span>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="border-l bg-gray-50 p-4 md:col-span-1">
-                                            <div className="mb-3 text-right">
-                                                <p className="text-sm text-gray-500">Harga Tiket</p>
-                                                <p className="text-2xl font-bold text-blue-600">
-                                                    {formatRupiah(item.rute.harga_tiket)}
-                                                </p>
-                                            </div>
-                                            <Button
-                                                asChild
-                                                className="w-full"
-                                                disabled={(item.available_seats ?? 0) < 1}
-                                            >
-                                                <Link href={`/pelanggan/jadwal/${item.id}`}>
-                                                    Pilih Kursi
-                                                    <ArrowRight className="ml-2 h-4 w-4" />
-                                                </Link>
-                                            </Button>
+
+                                        {/* Action Section */}
+                                        <div className="bg-muted/10 p-6 border-t md:border-t-0 md:border-l border-border flex flex-col justify-center items-center md:items-end md:w-56 shrink-0">
+                                            <p className="text-sm font-medium text-muted-foreground mb-1">Harga per kursi</p>
+                                            <p className="text-2xl font-bold text-foreground mb-4 tracking-tight">
+                                                {formatRupiah(item.rute.harga_tiket)}
+                                            </p>
+                                            {(item.available_seats ?? 0) < 1 ? (
+                                                <Button
+                                                    className="w-full"
+                                                    size="lg"
+                                                    disabled
+                                                >
+                                                    Habis
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    asChild
+                                                    className="w-full"
+                                                    size="lg"
+                                                >
+                                                    <Link href={`/pelanggan/jadwal/${item.id}`}>
+                                                        Pilih Kursi
+                                                    </Link>
+                                                </Button>
+                                            )}
                                         </div>
                                     </div>
                                 </CardContent>
@@ -334,22 +366,27 @@ export default function JadwalIndex({ jadwal, rute, filters }: JadwalIndexProps)
                         ))}
                     </div>
                 ) : (
-                    <Card>
-                        <CardContent className="p-12 text-center">
-                            <Bus className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                            <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                    <Card className="border-dashed mt-4">
+                        <CardContent className="flex flex-col items-center justify-center p-16 text-center">
+                            <div className="rounded-full bg-muted p-4 mb-4">
+                                <Bus className="h-10 w-10 text-muted-foreground" />
+                            </div>
+                            <h3 className="text-xl font-semibold text-foreground mb-2">
                                 Tidak ada jadwal ditemukan
                             </h3>
-                            <p className="text-gray-500">
-                                Coba ubah filter pencarian atau pilih tanggal lain
+                            <p className="text-muted-foreground max-w-md">
+                                Kami tidak dapat menemukan jadwal yang sesuai dengan filter Anda. Silakan coba ubah tanggal atau rute pencarian.
                             </p>
+                            <Button onClick={resetFilters} variant="outline" className="mt-6">
+                                Reset Pencarian
+                            </Button>
                         </CardContent>
                     </Card>
                 )}
 
                 {/* Pagination */}
                 {jadwal.last_page > 1 && (
-                    <div className="flex justify-center gap-2">
+                    <div className="flex justify-center gap-2 mt-4">
                         {jadwal.links.map((link, index) => (
                             <Button
                                 key={index}

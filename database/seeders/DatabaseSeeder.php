@@ -35,8 +35,8 @@ class DatabaseSeeder extends Seeder
         // Call all seeders in proper order
         $this->call([
             SupirSeeder::class,
-            ArmadaSeeder::class,
             RuteSeeder::class,
+            ArmadaSeeder::class,
             JadwalSeeder::class,
             PelangganSeeder::class,
             PemesananSeeder::class,

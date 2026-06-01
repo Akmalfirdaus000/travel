@@ -6,6 +6,7 @@ use Database\Factories\SupirFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Supir extends Model
 {
@@ -31,5 +32,13 @@ class Supir extends Model
     public function jadwal(): HasMany
     {
         return $this->hasMany(Jadwal::class);
+    }
+
+    /**
+     * Relasi ke armada
+     */
+    public function armada(): HasOne
+    {
+        return $this->hasOne(Armada::class);
     }
 }

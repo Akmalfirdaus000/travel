@@ -13,6 +13,17 @@ import {
     BarChart3,
     ArrowRight,
 } from 'lucide-react';
+import {
+    LineChart,
+    Line,
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer
+} from 'recharts';
 
 interface DashboardProps {
     totalPelanggan?: number;
@@ -25,10 +36,13 @@ interface DashboardProps {
     pemesananBatal?: number;
     totalPendapatan?: number;
     pendapatanBulanIni?: number;
+    revenueData?: any[];
+    popularRoutes?: any[];
     user?: {
         name: string;
         role: string;
     };
+    stats?: any;
 }
 
 export default function Dashboard({
@@ -42,7 +56,10 @@ export default function Dashboard({
     pemesananBatal = 0,
     totalPendapatan = 0,
     pendapatanBulanIni = 0,
+    revenueData = [],
+    popularRoutes = [],
     user,
+    stats,
 }: DashboardProps) {
     const isSuperAdmin = user?.role === 'super_admin';
 
@@ -64,61 +81,85 @@ export default function Dashboard({
                         <div className="grid auto-rows-min gap-4 md:grid-cols-4">
                             <Card>
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">
-                                        Total Pendapatan
-                                    </CardTitle>
+                                    <CardTitle className="text-sm font-medium">Total Pendapatan</CardTitle>
                                     <TrendingUp className="h-4 w-4 text-green-600" />
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-2xl font-bold">{formatRupiah(totalPendapatan)}</div>
-                                    <p className="text-xs text-muted-foreground">
-                                        Total pendapatan dari pemesanan
-                                    </p>
+                                    <div className="text-2xl font-bold text-green-600">{formatRupiah(totalPendapatan)}</div>
+                                    <p className="text-xs text-muted-foreground mt-1">Akumulasi keseluruhan pendapatan</p>
                                 </CardContent>
                             </Card>
                             <Card>
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">
-                                        Pendapatan Bulan Ini
-                                    </CardTitle>
+                                    <CardTitle className="text-sm font-medium">Pendapatan Bulan Ini</CardTitle>
                                     <TrendingUp className="h-4 w-4 text-blue-600" />
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-2xl font-bold">{formatRupiah(pendapatanBulanIni)}</div>
-                                    <p className="text-xs text-muted-foreground">
-                                        Pendapatan bulan ini
-                                    </p>
+                                    <p className="text-xs text-muted-foreground mt-1">Bulan berjalan</p>
                                 </CardContent>
                             </Card>
                             <Card>
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">
-                                        Pemesanan Lunas
-                                    </CardTitle>
+                                    <CardTitle className="text-sm font-medium">Pemesanan Lunas</CardTitle>
                                     <Receipt className="h-4 w-4 text-green-600" />
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-2xl font-bold">{pemesananLunas}</div>
-                                    <p className="text-xs text-muted-foreground">
-                                        Pemesanan yang sudah lunas
-                                    </p>
+                                    <p className="text-xs text-muted-foreground mt-1">Transaksi sukses</p>
                                 </CardContent>
                             </Card>
                             <Card>
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                    <CardTitle className="text-sm font-medium">
-                                        Menunggu Pembayaran
-                                    </CardTitle>
-                                    <Package className="h-4 w-4 text-yellow-600" />
+                                    <CardTitle className="text-sm font-medium">Total Transaksi</CardTitle>
+                                    <Package className="h-4 w-4 text-primary" />
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-2xl font-bold">{pemesananPending}</div>
-                                    <p className="text-xs text-muted-foreground">
-                                        Pemesanan menunggu pembayaran
-                                    </p>
+                                    <div className="text-2xl font-bold">{totalPemesanan}</div>
+                                    <p className="text-xs text-muted-foreground mt-1">Keseluruhan tiket</p>
                                 </CardContent>
                             </Card>
                         </div>
+
+                        {/* Grafik dan Analitik */}
+                        <div className="grid gap-4 md:grid-cols-7">
+                            <Card className="col-span-4">
+                                <CardHeader>
+                                    <CardTitle>Tren Pendapatan Harian (7 Hari Terakhir)</CardTitle>
+                                    <CardDescription>Visualisasi pendapatan tiket yang lunas</CardDescription>
+                                </CardHeader>
+                                <CardContent className="h-[300px]">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart data={revenueData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                                            <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
+                                            <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `Rp${(val/1000).toFixed(0)}K`} />
+                                            <Tooltip formatter={(value: number) => [formatRupiah(value), "Pendapatan"]} />
+                                            <Line type="monotone" dataKey="pendapatan" stroke="#16a34a" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="col-span-3">
+                                <CardHeader>
+                                    <CardTitle>Rute Paling Populer</CardTitle>
+                                    <CardDescription>Top 5 rute perjalanan</CardDescription>
+                                </CardHeader>
+                                <CardContent className="h-[300px]">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={popularRoutes} layout="vertical" margin={{ top: 0, right: 10, left: 10, bottom: 0 }}>
+                                            <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#e5e7eb" />
+                                            <XAxis type="number" fontSize={12} tickLine={false} axisLine={false} />
+                                            <YAxis dataKey="name" type="category" width={100} fontSize={11} tickLine={false} axisLine={false} />
+                                            <Tooltip formatter={(value: number) => [value, "Pesanan"]} />
+                                            <Bar dataKey="total" fill="#2563eb" radius={[0, 4, 4, 0]} barSize={20} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </CardContent>
+                            </Card>
+                        </div>
+
                         <div className="grid auto-rows-min gap-4 md:grid-cols-4">
                             <Card>
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -161,40 +202,17 @@ export default function Dashboard({
                                 </CardContent>
                             </Card>
                         </div>
-                        <div className="grid auto-rows-min gap-4 md:grid-cols-2">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                        <BarChart3 className="h-5 w-5" />
-                                        Laporan & Statistik
-                                    </CardTitle>
-                                    <CardDescription>
-                                        Akses laporan lengkap untuk analisis bisnis
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <Button asChild className="w-full">
+                        
+                        <div className="grid gap-4 md:grid-cols-1">
+                            <Card className="bg-primary text-primary-foreground border-none">
+                                <CardContent className="p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+                                    <div>
+                                        <h3 className="text-lg font-bold">Laporan & Analitik Super Admin</h3>
+                                        <p className="text-primary-foreground/80 mt-1">Akses semua fitur pelaporan lengkap, cetak data pendapatan bulanan, dan evaluasi performa bisnis travel Anda.</p>
+                                    </div>
+                                    <Button asChild variant="secondary" size="lg" className="shrink-0 w-full md:w-auto font-semibold">
                                         <Link href="/admin/reports">
-                                            Lihat Laporan
-                                            <ArrowRight className="ml-2 h-4 w-4" />
-                                        </Link>
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                        <Route className="h-5 w-5" />
-                                        Rute Terpopuler
-                                    </CardTitle>
-                                    <CardDescription>
-                                        Lihat rute yang paling banyak dipesan
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <Button asChild variant="outline" className="w-full">
-                                        <Link href="/admin/reports/rute-terpopuler">
-                                            Lihat Rute
+                                            Buka Semua Laporan
                                             <ArrowRight className="ml-2 h-4 w-4" />
                                         </Link>
                                     </Button>
@@ -222,7 +240,7 @@ export default function Dashboard({
                                     <Car className="h-4 w-4 text-muted-foreground" />
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-2xl font-bold">-</div>
+                                    <div className="text-2xl font-bold">{stats?.total_armada || 0}</div>
                                     <p className="text-xs text-muted-foreground">Unit armada tersedia</p>
                                 </CardContent>
                             </Card>

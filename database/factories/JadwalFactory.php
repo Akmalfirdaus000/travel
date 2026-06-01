@@ -23,8 +23,6 @@ class JadwalFactory extends Factory
         $tanggal = fake()->dateTimeBetween('now', '+30 days');
 
         return [
-            'rute_id' => Rute::factory(),
-            'supir_id' => Supir::factory(),
             'armada_id' => Armada::factory(),
             'tanggal_berangkat' => $tanggal->format('Y-m-d'),
             'jam_berangkat' => fake()->time('H:i:s'),

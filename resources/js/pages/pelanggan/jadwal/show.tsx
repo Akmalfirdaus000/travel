@@ -1,16 +1,13 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import {
     ArrowLeft,
     ArrowRight,
     Bus,
     Calendar,
     Clock,
-    IndianRupee,
     MapPin,
     Users,
     User,
@@ -132,9 +129,9 @@ export default function JadwalShow({ jadwal, availableSeats: initialSeats }: Jad
     return (
         <>
             <Head title={`Pilih Kursi - ${jadwal.rute.kota_asal} ke ${jadwal.rute.kota_tujuan}`} />
-            <div className="flex flex-1 flex-col gap-4 p-4">
+            <div className="flex flex-1 flex-col gap-6 p-6 max-w-5xl mx-auto w-full">
                 {/* Back Button */}
-                <Button asChild variant="ghost" className="w-fit gap-2">
+                <Button asChild variant="ghost" className="w-fit gap-2 -ml-3 text-muted-foreground hover:text-foreground">
                     <Link href="/pelanggan/jadwal">
                         <ArrowLeft className="h-4 w-4" />
                         Kembali ke Jadwal
@@ -142,56 +139,62 @@ export default function JadwalShow({ jadwal, availableSeats: initialSeats }: Jad
                 </Button>
 
                 {/* Schedule Info */}
-                <Card>
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
+                <Card className="border-muted shadow-sm">
+                    <CardHeader className="bg-muted/30 border-b border-muted pb-4">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <div>
-                                <CardTitle className="flex items-center gap-2">
-                                    <MapPin className="h-5 w-5 text-blue-600" />
-                                    {jadwal.rute.kota_asal} → {jadwal.rute.kota_tujuan}
+                                <CardTitle className="flex items-center gap-2 text-2xl">
+                                    <MapPin className="h-5 w-5 text-primary" />
+                                    {jadwal.rute.kota_asal} <ArrowRight className="h-4 w-4 text-muted-foreground mx-1" /> {jadwal.rute.kota_tujuan}
                                 </CardTitle>
-                                <CardDescription className="flex items-center gap-4 mt-2">
-                                    <span className="flex items-center gap-1">
-                                        <Calendar className="h-4 w-4" />
+                                <CardDescription className="flex items-center gap-5 mt-3 text-sm">
+                                    <span className="flex items-center gap-1.5 text-foreground font-medium">
+                                        <Calendar className="h-4 w-4 text-muted-foreground" />
                                         {formatDate(jadwal.tanggal_berangkat)}
                                     </span>
-                                    <span className="flex items-center gap-1">
-                                        <Clock className="h-4 w-4" />
-                                        {jadwal.jam_berangkat}
+                                    <span className="flex items-center gap-1.5 text-foreground font-medium">
+                                        <Clock className="h-4 w-4 text-muted-foreground" />
+                                        {jadwal.jam_berangkat.substring(0, 5)} WIB
                                     </span>
                                 </CardDescription>
                             </div>
-                            <div className="text-right">
-                                <p className="text-sm text-gray-500">Harga per kursi</p>
-                                <p className="text-2xl font-bold text-blue-600">
+                            <div className="text-left md:text-right bg-background p-3 rounded-lg border border-border">
+                                <p className="text-sm text-muted-foreground font-medium">Harga per kursi</p>
+                                <p className="text-2xl font-bold text-primary mt-0.5">
                                     {formatRupiah(jadwal.rute.harga_tiket)}
                                 </p>
                             </div>
                         </div>
                     </CardHeader>
-                    <CardContent>
-                        <div className="grid gap-4 md:grid-cols-3">
-                            <div className="flex items-center gap-3">
-                                <Bus className="h-5 w-5 text-gray-600" />
+                    <CardContent className="pt-6">
+                        <div className="grid gap-6 md:grid-cols-3">
+                            <div className="flex items-start gap-3">
+                                <div className="p-2 bg-muted rounded-md">
+                                    <Bus className="h-5 w-5 text-foreground" />
+                                </div>
                                 <div>
-                                    <p className="text-sm text-gray-500">Armada</p>
-                                    <p className="font-medium">{jadwal.armada.tipe_mobil}</p>
-                                    <p className="text-xs text-gray-400">{jadwal.armada.plat_nomor}</p>
+                                    <p className="text-sm font-medium text-muted-foreground mb-1">Armada</p>
+                                    <p className="font-semibold text-foreground">{jadwal.armada.tipe_mobil}</p>
+                                    <Badge variant="outline" className="mt-1 font-mono text-xs">{jadwal.armada.plat_nomor}</Badge>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <Users className="h-5 w-5 text-gray-600" />
+                            <div className="flex items-start gap-3">
+                                <div className="p-2 bg-muted rounded-md">
+                                    <Users className="h-5 w-5 text-foreground" />
+                                </div>
                                 <div>
-                                    <p className="text-sm text-gray-500">Supir</p>
-                                    <p className="font-medium">{jadwal.supir.nama_supir}</p>
-                                    <p className="text-xs text-gray-400">{jadwal.supir.no_telp_supir}</p>
+                                    <p className="text-sm font-medium text-muted-foreground mb-1">Supir</p>
+                                    <p className="font-semibold text-foreground">{jadwal.supir.nama_supir}</p>
+                                    <p className="text-sm text-muted-foreground mt-0.5">{jadwal.supir.no_telp_supir}</p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <Armchair className="h-5 w-5 text-gray-600" />
+                            <div className="flex items-start gap-3">
+                                <div className="p-2 bg-muted rounded-md">
+                                    <Armchair className="h-5 w-5 text-foreground" />
+                                </div>
                                 <div>
-                                    <p className="text-sm text-gray-500">Kapasitas</p>
-                                    <p className="font-medium">{jadwal.armada.kapasitas_kursi} kursi</p>
+                                    <p className="text-sm font-medium text-muted-foreground mb-1">Kapasitas</p>
+                                    <p className="font-semibold text-foreground">{jadwal.armada.kapasitas_kursi} Kursi</p>
                                 </div>
                             </div>
                         </div>
@@ -199,53 +202,60 @@ export default function JadwalShow({ jadwal, availableSeats: initialSeats }: Jad
                 </Card>
 
                 {/* Seat Selection */}
-                <Card>
-                    <CardHeader>
+                <Card className="border-muted shadow-sm overflow-hidden">
+                    <CardHeader className="border-b border-muted bg-muted/10">
                         <CardTitle className="flex items-center gap-2">
                             <Armchair className="h-5 w-5" />
                             Pilih Kursi
                         </CardTitle>
                         <CardDescription>
-                            Klik pada kursi untuk memilih. Kursi yang berwarna merah sudah dipesan.
+                            Silakan pilih posisi kursi yang Anda inginkan.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="p-6">
                         {/* Seat Legend */}
-                        <div className="mb-6 flex flex-wrap gap-4">
-                            <div className="flex items-center gap-2">
-                                <div className="h-8 w-8 rounded border-2 border-green-500 bg-green-100" />
-                                <span className="text-sm">Tersedia</span>
+                        <div className="mb-8 flex flex-wrap gap-6 justify-center bg-muted/30 p-4 rounded-xl">
+                            <div className="flex items-center gap-2.5">
+                                <div className="h-8 w-8 rounded-md border-2 border-primary/20 bg-background shadow-sm" />
+                                <span className="text-sm font-medium text-muted-foreground">Tersedia</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <div className="h-8 w-8 rounded border-2 border-blue-500 bg-blue-500 text-white flex items-center justify-center">
+                            <div className="flex items-center gap-2.5">
+                                <div className="h-8 w-8 rounded-md bg-primary text-primary-foreground shadow-md flex items-center justify-center">
                                     <User className="h-4 w-4" />
                                 </div>
-                                <span className="text-sm">Dipilih</span>
+                                <span className="text-sm font-medium text-foreground">Dipilih</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <div className="h-8 w-8 rounded border-2 border-red-500 bg-red-100" />
-                                <span className="text-sm">Terisi</span>
+                            <div className="flex items-center gap-2.5">
+                                <div className="h-8 w-8 rounded-md border border-muted bg-muted text-muted-foreground flex items-center justify-center">
+                                    <User className="h-4 w-4 opacity-50" />
+                                </div>
+                                <span className="text-sm font-medium text-muted-foreground">Terisi</span>
                             </div>
                         </div>
 
                         {/* Seat Map */}
-                        <div className="mb-6 overflow-x-auto">
-                            <div className="min-w-[600px]">
+                        <div className="mb-8 overflow-x-auto flex justify-center">
+                            <div className="min-w-max border-2 border-muted rounded-2xl p-6 bg-background shadow-sm relative">
+                                {/* Steering Wheel Icon indicating front of bus */}
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-background px-2 text-muted-foreground text-xs font-semibold tracking-widest uppercase">
+                                    Depan
+                                </div>
+                                
                                 {/* Driver Seat */}
-                                <div className="mb-4 flex items-center gap-2">
-                                    <div className="h-8 w-8 rounded bg-gray-200 flex items-center justify-center">
-                                        <Users className="h-4 w-4 text-gray-500" />
+                                <div className="mb-8 flex justify-end pr-2 border-b-2 border-dashed border-muted pb-6">
+                                    <div className="h-12 w-12 rounded-xl bg-muted/50 border border-muted flex flex-col items-center justify-center">
+                                        <Users className="h-5 w-5 text-muted-foreground mb-1" />
+                                        <span className="text-[10px] font-bold text-muted-foreground uppercase">Supir</span>
                                     </div>
-                                    <span className="text-sm text-gray-500">Supir</span>
                                 </div>
 
                                 {/* Seats Grid */}
-                                <div className="space-y-2">
+                                <div className="space-y-3">
                                     {seatLayout.map((rowSeats, rowIndex) => (
-                                        <div key={rowIndex} className="flex items-center justify-center gap-2">
+                                        <div key={rowIndex} className="flex items-center justify-center gap-3">
                                             {rowSeats.map((seatNum, colIndex) => {
                                                 if (seatNum === null) {
-                                                    return <div key="aisle" className="w-16" />;
+                                                    return <div key={`aisle-${rowIndex}`} className="w-8" />; // Aisle
                                                 }
 
                                                 const seat = availableSeats.find((s) => s.nomor === seatNum);
@@ -257,17 +267,17 @@ export default function JadwalShow({ jadwal, availableSeats: initialSeats }: Jad
                                                         key={seatNum}
                                                         onClick={() => toggleSeat(seatNum)}
                                                         disabled={!isAvailable}
-                                                        className={`h-10 w-10 rounded-lg border-2 transition-all flex items-center justify-center text-sm font-medium
+                                                        className={`h-12 w-12 rounded-xl border-2 transition-all duration-200 flex items-center justify-center text-sm font-bold shadow-sm
                                                             ${!isAvailable
-                                                                ? 'border-red-500 bg-red-100 text-red-500 cursor-not-allowed'
+                                                                ? 'border-muted bg-muted text-muted-foreground/50 cursor-not-allowed shadow-none'
                                                                 : isSelected
-                                                                    ? 'border-blue-500 bg-blue-500 text-white'
-                                                                    : 'border-green-500 bg-green-100 text-green-700 hover:bg-green-200 cursor-pointer'
+                                                                    ? 'border-primary bg-primary text-primary-foreground shadow-md transform scale-105'
+                                                                    : 'border-primary/20 bg-background text-foreground hover:border-primary/50 hover:bg-primary/5 cursor-pointer'
                                                             }
                                                         `}
-                                                        title={`Kursi ${seatNum}`}
+                                                        title={!isAvailable ? 'Kursi terisi' : `Pilih Kursi ${seatNum}`}
                                                     >
-                                                        {isSelected ? <User className="h-4 w-4" /> : seatNum}
+                                                        {isSelected ? <User className="h-5 w-5" /> : seatNum}
                                                     </button>
                                                 );
                                             })}
@@ -278,51 +288,41 @@ export default function JadwalShow({ jadwal, availableSeats: initialSeats }: Jad
                         </div>
 
                         {/* Seat Summary */}
-                        <div className="flex flex-wrap items-center justify-between gap-4 border-t pt-4">
-                            <div className="flex gap-6">
+                        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-muted pt-6">
+                            <div className="flex gap-8">
                                 <div>
-                                    <p className="text-sm text-gray-500">Tersedia</p>
-                                    <p className="font-semibold text-green-600">{availableCount} kursi</p>
+                                    <p className="text-sm font-medium text-muted-foreground">Tersedia</p>
+                                    <p className="font-bold text-lg">{availableCount} <span className="text-sm font-normal text-muted-foreground">kursi</span></p>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500">Terisi</p>
-                                    <p className="font-semibold text-red-600">{bookedCount} kursi</p>
+                                    <p className="text-sm font-medium text-muted-foreground">Terisi</p>
+                                    <p className="font-bold text-lg">{bookedCount} <span className="text-sm font-normal text-muted-foreground">kursi</span></p>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500">Dipilih</p>
-                                    <p className="font-semibold text-blue-600">{selectedSeats.length} kursi</p>
+                                    <p className="text-sm font-medium text-muted-foreground">Pilihan Anda</p>
+                                    <p className="font-bold text-lg text-primary">{selectedSeats.length} <span className="text-sm font-normal text-muted-foreground">kursi</span></p>
                                 </div>
                             </div>
-                            {selectedSeats.length > 0 && (
-                                <div className="text-right">
-                                    <p className="text-sm text-gray-500">Total Biaya</p>
-                                    <p className="text-2xl font-bold text-blue-600">
-                                        {formatRupiah(totalPrice)}
-                                    </p>
-                                </div>
-                            )}
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* Selected Seats & Continue */}
                 {selectedSeats.length > 0 && (
-                    <Card className="border-blue-200 bg-blue-50">
-                        <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="font-semibold text-gray-900">
-                                        Kursi Terpilih: {selectedSeats.sort((a, b) => a - b).join(', ')}
-                                    </p>
-                                    <p className="text-sm text-gray-600">
-                                        Total: {formatRupiah(totalPrice)}
-                                    </p>
-                                </div>
-                                <Button onClick={handleContinue} className="gap-2">
-                                    Lanjut Pemesanan
-                                    <ArrowRight className="h-4 w-4" />
-                                </Button>
+                    <Card className="border-primary/50 bg-primary/5 shadow-md animate-in slide-in-from-bottom-4 duration-300">
+                        <CardContent className="p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div>
+                                <p className="font-semibold text-foreground mb-1">
+                                    Kursi Terpilih: <span className="text-primary">{selectedSeats.sort((a, b) => a - b).join(', ')}</span>
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                    Total Pembayaran: <span className="font-bold text-foreground text-lg">{formatRupiah(totalPrice)}</span>
+                                </p>
                             </div>
+                            <Button onClick={handleContinue} size="lg" className="gap-2 w-full sm:w-auto shadow-md">
+                                Lanjutkan Pembayaran
+                                <ArrowRight className="h-4 w-4" />
+                            </Button>
                         </CardContent>
                     </Card>
                 )}

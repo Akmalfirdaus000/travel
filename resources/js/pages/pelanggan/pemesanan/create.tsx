@@ -10,11 +10,14 @@ import {
     Bus,
     Calendar,
     Clock,
-    IndianRupee,
     MapPin,
     User,
     Phone,
     Users,
+    Receipt,
+    AlertCircle,
+    Building2,
+    Ticket,
 } from 'lucide-react';
 import { useForm } from '@inertiajs/react';
 
@@ -88,77 +91,76 @@ export default function PemesananCreate({ jadwal, kursiTerpilih, totalBayar, aut
 
     return (
         <>
-            <Head title="Konfirmasi Pemesanan - CV Baruna Travel" />
-            <div className="flex flex-1 flex-col gap-4 p-4">
+            <Head title="Konfirmasi Pemesanan Tiket" />
+            <div className="flex flex-1 flex-col gap-6 p-6 max-w-5xl mx-auto w-full">
                 {/* Back Button */}
-                <Button asChild variant="ghost" className="w-fit gap-2">
+                <Button asChild variant="ghost" className="w-fit gap-2 -ml-3 text-muted-foreground hover:text-foreground">
                     <Link href={`/pelanggan/jadwal/${jadwal.id}`}>
                         <ArrowLeft className="h-4 w-4" />
                         Kembali ke Pilihan Kursi
                     </Link>
                 </Button>
 
-                <h1 className="text-2xl font-bold text-gray-900">Konfirmasi Pemesanan Tiket</h1>
+                <div className="mb-2">
+                    <h1 className="text-3xl font-bold text-foreground tracking-tight">Konfirmasi Pemesanan</h1>
+                    <p className="text-muted-foreground mt-1">Lengkapi data penumpang untuk mengamankan kursi Anda.</p>
+                </div>
 
-                <div className="grid gap-4 lg:grid-cols-3">
-                    {/* Trip Details */}
-                    <div className="lg:col-span-2 space-y-4">
-                        <Card>
-                            <CardHeader>
+                <div className="grid gap-8 lg:grid-cols-3">
+                    {/* Left Column: Trip Details & Form */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* Trip Details */}
+                        <Card className="shadow-sm border-muted">
+                            <CardHeader className="bg-muted/10 border-b border-muted">
                                 <CardTitle className="flex items-center gap-2">
-                                    <Bus className="h-5 w-5 text-blue-600" />
+                                    <Bus className="h-5 w-5 text-primary" />
                                     Detail Perjalanan
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent>
-                                <div className="grid gap-4 md:grid-cols-2">
-                                    <div className="space-y-3">
-                                        <div className="flex items-center gap-3">
-                                            <MapPin className="h-5 w-5 text-gray-500" />
+                            <CardContent className="p-6">
+                                <div className="grid gap-8 md:grid-cols-2">
+                                    <div className="space-y-6">
+                                        <div className="flex items-start gap-4">
+                                            <div className="p-2 bg-muted rounded-md mt-0.5">
+                                                <MapPin className="h-4 w-4 text-foreground" />
+                                            </div>
                                             <div>
-                                                <p className="text-sm text-gray-500">Rute</p>
-                                                <p className="font-semibold">
+                                                <p className="text-sm font-medium text-muted-foreground">Rute</p>
+                                                <p className="font-semibold text-lg text-foreground mt-0.5">
                                                     {jadwal.rute.kota_asal} → {jadwal.rute.kota_tujuan}
                                                 </p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-3">
-                                            <Calendar className="h-5 w-5 text-gray-500" />
-                                            <div>
-                                                <p className="text-sm text-gray-500">Tanggal</p>
-                                                <p className="font-semibold">{formatDate(jadwal.tanggal_berangkat)}</p>
+                                        <div className="flex items-start gap-4">
+                                            <div className="p-2 bg-muted rounded-md mt-0.5">
+                                                <Calendar className="h-4 w-4 text-foreground" />
                                             </div>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <Clock className="h-5 w-5 text-gray-500" />
                                             <div>
-                                                <p className="text-sm text-gray-500">Jam</p>
-                                                <p className="font-semibold">{jadwal.jam_berangkat}</p>
+                                                <p className="text-sm font-medium text-muted-foreground">Waktu Keberangkatan</p>
+                                                <p className="font-semibold text-foreground mt-0.5">{formatDate(jadwal.tanggal_berangkat)}</p>
+                                                <p className="text-sm text-muted-foreground mt-0.5">{jadwal.jam_berangkat.substring(0, 5)} WIB</p>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="space-y-3">
-                                        <div className="flex items-center gap-3">
-                                            <Bus className="h-5 w-5 text-gray-500" />
+                                    <div className="space-y-6">
+                                        <div className="flex items-start gap-4">
+                                            <div className="p-2 bg-muted rounded-md mt-0.5">
+                                                <Bus className="h-4 w-4 text-foreground" />
+                                            </div>
                                             <div>
-                                                <p className="text-sm text-gray-500">Armada</p>
-                                                <p className="font-semibold">{jadwal.armada.tipe_mobil}</p>
-                                                <p className="text-xs text-gray-400">{jadwal.armada.plat_nomor}</p>
+                                                <p className="text-sm font-medium text-muted-foreground">Armada</p>
+                                                <p className="font-semibold text-foreground mt-0.5">{jadwal.armada.tipe_mobil}</p>
+                                                <Badge variant="outline" className="mt-1 font-mono text-xs">{jadwal.armada.plat_nomor}</Badge>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-3">
-                                            <Users className="h-5 w-5 text-gray-500" />
-                                            <div>
-                                                <p className="text-sm text-gray-500">Kursi</p>
-                                                <p className="font-semibold">{kursiTerpilih.sort((a, b) => a - b).join(', ')}</p>
-                                                <p className="text-xs text-gray-400">{kursiTerpilih.length} kursi</p>
+                                        <div className="flex items-start gap-4">
+                                            <div className="p-2 bg-primary/10 rounded-md mt-0.5">
+                                                <Ticket className="h-4 w-4 text-primary" />
                                             </div>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <IndianRupee className="h-5 w-5 text-gray-500" />
                                             <div>
-                                                <p className="text-sm text-gray-500">Total</p>
-                                                <p className="text-2xl font-bold text-blue-600">{formatRupiah(totalBayar)}</p>
+                                                <p className="text-sm font-medium text-muted-foreground">Kursi Dipilih</p>
+                                                <p className="font-semibold text-foreground mt-0.5">{kursiTerpilih.sort((a, b) => a - b).join(', ')}</p>
+                                                <p className="text-sm text-muted-foreground mt-0.5">{kursiTerpilih.length} kursi</p>
                                             </div>
                                         </div>
                                     </div>
@@ -167,173 +169,167 @@ export default function PemesananCreate({ jadwal, kursiTerpilih, totalBayar, aut
                         </Card>
 
                         {/* Passenger Manifest Form */}
-                        <Card>
-                            <CardHeader>
+                        <Card className="shadow-sm border-muted">
+                            <CardHeader className="bg-muted/10 border-b border-muted">
                                 <CardTitle className="flex items-center gap-2">
-                                    <User className="h-5 w-5" />
+                                    <User className="h-5 w-5 text-primary" />
                                     Data Penumpang
                                 </CardTitle>
                                 <CardDescription>
                                     {user
-                                        ? 'Data Anda akan digunakan sebagai penumpang. Ubah jika memesan untuk orang lain.'
-                                        : 'Silakan lengkapi data penumpang untuk melanjutkan pemesanan.'}
+                                        ? 'Data Anda digunakan sebagai pemesan utama. Sesuaikan jika memesan untuk orang lain.'
+                                        : 'Lengkapi data penumpang untuk keperluan tiket.'}
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                <form onSubmit={handleSubmit} className="space-y-4">
-                                    <div className="grid gap-4 md:grid-cols-2">
-                                        <div>
-                                            <Label htmlFor="nama_penumpang">Nama Lengkap *</Label>
+                            <CardContent className="p-6">
+                                <form id="pemesanan-form" onSubmit={handleSubmit} className="space-y-6">
+                                    <div className="grid gap-6 md:grid-cols-2">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="nama_penumpang" className="font-semibold">Nama Lengkap <span className="text-destructive">*</span></Label>
                                             <Input
                                                 id="nama_penumpang"
                                                 value={data.nama_penumpang}
                                                 onChange={(e) => setData('nama_penumpang', e.target.value)}
-                                                error={errors.nama_penumpang}
-                                                placeholder="Sesuai KTP/Paspor"
+                                                className={errors.nama_penumpang ? 'border-destructive focus-visible:ring-destructive' : ''}
+                                                placeholder="Sesuai KTP/Identitas"
                                             />
                                             {errors.nama_penumpang && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.nama_penumpang}</p>
+                                                <p className="text-sm font-medium text-destructive">{errors.nama_penumpang}</p>
                                             )}
                                         </div>
-                                        <div>
-                                            <Label htmlFor="email_penumpang">Email *</Label>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="email_penumpang" className="font-semibold">Email <span className="text-destructive">*</span></Label>
                                             <Input
                                                 id="email_penumpang"
                                                 type="email"
                                                 value={data.email_penumpang}
                                                 onChange={(e) => setData('email_penumpang', e.target.value)}
-                                                error={errors.email_penumpang}
-                                                placeholder="Untuk kirim tiket"
+                                                className={errors.email_penumpang ? 'border-destructive focus-visible:ring-destructive' : ''}
+                                                placeholder="Untuk pengiriman e-ticket"
                                             />
                                             {errors.email_penumpang && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.email_penumpang}</p>
+                                                <p className="text-sm font-medium text-destructive">{errors.email_penumpang}</p>
                                             )}
                                         </div>
-                                        <div>
-                                            <Label htmlFor="no_telp_penumpang">No. Telepon *</Label>
-                                            <Input
-                                                id="no_telp_penumpang"
-                                                value={data.no_telp_penumpang}
-                                                onChange={(e) => setData('no_telp_penumpang', e.target.value)}
-                                                error={errors.no_telp_penumpang}
-                                                placeholder="08xxxxxxxxxx"
-                                            />
+                                        <div className="space-y-2">
+                                            <Label htmlFor="no_telp_penumpang" className="font-semibold">No. Whatsapp <span className="text-destructive">*</span></Label>
+                                            <div className="relative">
+                                                <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                                <Input
+                                                    id="no_telp_penumpang"
+                                                    value={data.no_telp_penumpang}
+                                                    onChange={(e) => setData('no_telp_penumpang', e.target.value)}
+                                                    className={`pl-9 ${errors.no_telp_penumpang ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                                                    placeholder="08xxxxxxxxxx"
+                                                />
+                                            </div>
                                             {errors.no_telp_penumpang && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.no_telp_penumpang}</p>
+                                                <p className="text-sm font-medium text-destructive">{errors.no_telp_penumpang}</p>
                                             )}
                                         </div>
-                                        <div>
-                                            <Label htmlFor="alamat_penumpang">Alamat Lengkap</Label>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="alamat_penumpang" className="font-semibold">Alamat Lengkap</Label>
                                             <Input
                                                 id="alamat_penumpang"
                                                 value={data.alamat_penumpang}
                                                 onChange={(e) => setData('alamat_penumpang', e.target.value)}
-                                                error={errors.alamat_penumpang}
-                                                placeholder="Alamat penjemputan (opsional)"
+                                                className={errors.alamat_penumpang ? 'border-destructive focus-visible:ring-destructive' : ''}
+                                                placeholder="Alamat domisili atau penjemputan"
                                             />
                                             {errors.alamat_penumpang && (
-                                                <p className="mt-1 text-sm text-red-600">{errors.alamat_penumpang}</p>
+                                                <p className="text-sm font-medium text-destructive">{errors.alamat_penumpang}</p>
                                             )}
                                         </div>
                                     </div>
-                                    <div>
-                                        <Label htmlFor="catatan">Catatan Tambahan</Label>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="catatan" className="font-semibold">Catatan Tambahan (Opsional)</Label>
                                         <textarea
                                             id="catatan"
                                             value={data.catatan}
                                             onChange={(e) => setData('catatan', e.target.value)}
-                                            placeholder="Contoh: Barang bawaan, titip jemput, dll (opsional)"
+                                            placeholder="Contoh: Bawa barang banyak, titik penjemputan spesifik, dll"
                                             rows={3}
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                         />
                                         {errors.catatan && (
-                                            <p className="mt-1 text-sm text-red-600">{errors.catatan}</p>
+                                            <p className="text-sm font-medium text-destructive">{errors.catatan}</p>
                                         )}
-                                    </div>
-
-                                    <div className="flex items-center justify-between rounded-lg bg-blue-50 p-4">
-                                        <div>
-                                            <p className="font-semibold text-gray-900">Total Pembayaran</p>
-                                            <p className="text-sm text-gray-600">Transfer ke rekening CV Baruna Travel</p>
-                                        </div>
-                                        <p className="text-2xl font-bold text-blue-600">{formatRupiah(totalBayar)}</p>
-                                    </div>
-
-                                    <div className="flex gap-2">
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            className="flex-1"
-                                            asChild
-                                        >
-                                            <Link href={`/pelanggan/jadwal/${jadwal.id}`}>Batal</Link>
-                                        </Button>
-                                        <Button type="submit" className="flex-1 gap-2" disabled={processing}>
-                                            {processing ? 'Memproses...' : 'Konfirmasi Pesanan'}
-                                            {!processing && <ArrowRight className="h-4 w-4" />}
-                                        </Button>
                                     </div>
                                 </form>
                             </CardContent>
                         </Card>
                     </div>
 
-                    {/* Sidebar Info */}
-                    <div className="space-y-4">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-base">Cara Pembayaran</CardTitle>
+                    {/* Right Column: Sidebar */}
+                    <div className="space-y-6">
+                        <Card className="shadow-md border-primary/20">
+                            <CardHeader className="bg-primary/5 border-b border-primary/10 pb-4">
+                                <CardTitle className="text-lg">Ringkasan Biaya</CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-3 text-sm">
-                                <div className="flex gap-3">
-                                    <Badge className="mt-0.5">1</Badge>
-                                    <p>Klik "Konfirmasi Pesanan"</p>
+                            <CardContent className="p-6">
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-muted-foreground">Harga per kursi</span>
+                                        <span className="font-medium">{formatRupiah(jadwal.rute.harga_tiket)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-muted-foreground">Jumlah kursi</span>
+                                        <span className="font-medium">x {kursiTerpilih.length}</span>
+                                    </div>
+                                    <div className="pt-4 border-t border-muted flex flex-col gap-1">
+                                        <p className="text-sm font-medium text-muted-foreground">Total yang harus dibayar</p>
+                                        <p className="text-3xl font-black text-primary">{formatRupiah(totalBayar)}</p>
+                                    </div>
                                 </div>
-                                <div className="flex gap-3">
-                                    <Badge className="mt-0.5">2</Badge>
-                                    <p>Catat kode booking</p>
-                                </div>
-                                <div className="flex gap-3">
-                                    <Badge className="mt-0.5">3</Badge>
-                                    <p>Transfer sesuai total</p>
-                                </div>
-                                <div className="flex gap-3">
-                                    <Badge className="mt-0.5">4</Badge>
-                                    <p>Upload bukti transfer</p>
-                                </div>
-                                <div className="flex gap-3">
-                                    <Badge className="mt-0.5">5</Badge>
-                                    <p>Tunggu verifikasi admin</p>
+
+                                <div className="mt-6 pt-6 border-t border-muted">
+                                    <Button type="submit" form="pemesanan-form" size="lg" className="w-full gap-2 shadow-md" disabled={processing}>
+                                        {processing ? 'Memproses...' : 'Lanjut ke Pembayaran'}
+                                        {!processing && <ArrowRight className="h-4 w-4" />}
+                                    </Button>
+                                    <p className="text-xs text-center text-muted-foreground mt-3">
+                                        Dengan menekan tombol di atas, Anda menyetujui syarat & ketentuan kami.
+                                    </p>
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-base">Rekening Tujuan</CardTitle>
+                        <Card className="shadow-sm border-muted">
+                            <CardHeader className="bg-muted/10 border-b border-muted pb-3">
+                                <CardTitle className="text-base flex items-center gap-2">
+                                    <Receipt className="h-4 w-4" />
+                                    Cara Pembayaran
+                                </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-3 text-sm">
-                                <div>
-                                    <p className="font-semibold">Bank BRI</p>
-                                    <p className="text-gray-600">1234-5678-9000</p>
-                                    <p className="text-gray-600">a.n CV Baruna Travel</p>
+                            <CardContent className="pt-5 space-y-4 text-sm text-muted-foreground">
+                                <div className="flex gap-3">
+                                    <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 font-bold text-xs">1</div>
+                                    <p className="mt-0.5">Klik "Lanjut ke Pembayaran"</p>
                                 </div>
-                                <div>
-                                    <p className="font-semibold">Bank Mandiri</p>
-                                    <p className="text-gray-600">0987-6543-2100</p>
-                                    <p className="text-gray-600">a.n CV Baruna Travel</p>
+                                <div className="flex gap-3">
+                                    <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 font-bold text-xs">2</div>
+                                    <p className="mt-0.5">Transfer sesuai total biaya ke salah satu rekening Bank kami.</p>
+                                </div>
+                                <div className="flex gap-3">
+                                    <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 font-bold text-xs">3</div>
+                                    <p className="mt-0.5">Upload struk / bukti transfer.</p>
+                                </div>
+                                <div className="flex gap-3">
+                                    <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 font-bold text-xs">4</div>
+                                    <p className="mt-0.5">Admin akan memverifikasi dan E-Ticket siap dicetak.</p>
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <Card className="bg-amber-50 border-amber-200">
-                            <CardContent className="p-4 text-sm text-amber-800">
-                                <p className="font-semibold mb-2">⚠️ Catatan Penting:</p>
-                                <ul className="space-y-1 text-xs">
-                                    <li>• Pembayaran harus dilakukan dalam 2x24 jam</li>
-                                    <li>• Kursi akan dikunci setelah pesanan dikonfirmasi</li>
-                                    <li>• Batalkan pesanan jika tidak jadi melakukan pembayaran</li>
-                                    <li>• Tiket dapat dicetak setelah pembayaran diverifikasi</li>
+                        <Card className="bg-destructive/5 border-destructive/20 shadow-none">
+                            <CardContent className="p-4 text-sm text-destructive/80">
+                                <div className="flex gap-2 font-semibold mb-2 items-center">
+                                    <AlertCircle className="h-4 w-4" />
+                                    <p>Penting</p>
+                                </div>
+                                <ul className="space-y-1.5 pl-6 list-disc">
+                                    <li>Pembayaran maksimal 2x24 jam.</li>
+                                    <li>Kursi akan dikunci setelah Anda membuat pesanan.</li>
                                 </ul>
                             </CardContent>
                         </Card>

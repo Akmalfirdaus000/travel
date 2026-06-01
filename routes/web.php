@@ -7,13 +7,16 @@ use App\Http\Controllers\Admin\PembayaranController;
 use App\Http\Controllers\Admin\PemesananController;
 use App\Http\Controllers\Admin\RuteController;
 use App\Http\Controllers\Admin\SupirController;
+use App\Http\Controllers\Pelanggan\DashboardController;
 use App\Http\Controllers\Pelanggan\JadwalController as PelangganJadwalController;
 use App\Http\Controllers\Pelanggan\PembayaranController as PelangganPembayaranController;
 use App\Http\Controllers\Pelanggan\PemesananController as PelangganPemesananController;
 use App\Http\Controllers\SuperAdmin\ReportController;
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'home')->name('home');
+Route::get('/', function () {
+    return redirect()->route('login');
+})->name('home');
 
 // Dashboard redirect based on role
 Route::get('/dashboard', function () {
@@ -34,7 +37,7 @@ Route::get('/dashboard', function () {
 // Pelanggan routes (authenticated, role: pelanggan)
 Route::middleware(['auth', 'verified', 'role:pelanggan'])->prefix('pelanggan')->name('pelanggan.')->group(function () {
     // Dashboard pelanggan
-    Route::get('dashboard', fn () => inertia('pelanggan/dashboard'))->name('dashboard');
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
 
     // Jadwal routes
     Route::get('jadwal', [PelangganJadwalController::class, 'index'])->name('jadwal.index');
@@ -51,6 +54,7 @@ Route::middleware(['auth', 'verified', 'role:pelanggan'])->prefix('pelanggan')->
     Route::get('pemesanan/{pemesanan}/eticket', [PelangganPemesananController::class, 'eticket'])->name('pemesanan.eticket');
 
     // Pembayaran routes
+    Route::get('pembayaran', [PelangganPembayaranController::class, 'index'])->name('pembayaran.index');
     Route::get('pembayaran/create/{pemesanan}', [PelangganPembayaranController::class, 'create'])->name('pembayaran.create');
     Route::post('pembayaran', [PelangganPembayaranController::class, 'store'])->name('pembayaran.store');
     Route::put('pembayaran/{pembayaran}', [PelangganPembayaranController::class, 'update'])->name('pembayaran.update');
@@ -67,8 +71,9 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
 
         return $next($request);
     }], function () {
+
         // Dashboard admin (both admin and super_admin can access)
-        Route::get('dashboard', fn () => inertia('admin/dashboard'))->name('dashboard');
+        Route::get('dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
 
         // Resource Routes (both admin and super_admin can access)
         Route::resource('supir', SupirController::class);
@@ -80,7 +85,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         Route::resource('pembayaran', PembayaranController::class);
 
         // Additional route for verifikasi pembayaran
-        Route::post('pembayaran/{pembayaran}/verifikasi', [PembayaranController::class, 'verifikasi'])
+        Route::patch('pembayaran/{pembayaran}/verifikasi', [PembayaranController::class, 'verifikasi'])
             ->name('pembayaran.verifikasi');
     });
 });
@@ -96,7 +101,7 @@ Route::middleware(['auth', 'verified', 'role:super_admin'])->prefix('admin')->na
         Route::get('/supir-performa', [ReportController::class, 'supirPerforma'])->name('supir-performa');
         Route::get('/armada-utilisasi', [ReportController::class, 'armadaUtilisasi'])->name('armada-utilisasi');
         Route::get('/bulanan', [ReportController::class, 'bulanan'])->name('bulanan');
-        Route::post('/export', [ReportController::class, 'export'])->name('export');
+        Route::get('/export', [ReportController::class, 'export'])->name('export');
     });
 });
 

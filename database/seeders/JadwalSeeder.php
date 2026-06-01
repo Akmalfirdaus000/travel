@@ -36,7 +36,6 @@ class JadwalSeeder extends Seeder
             // Jadwal Rao -> Padang (pagi dan malam)
             $jadwalData[] = [
                 'rute_id' => $ruteRaoPadang->id,
-                'supir_id' => $supirs[0]->id,
                 'armada_id' => $armadas[0]->id,
                 'tanggal_berangkat' => $date,
                 'jam_berangkat' => '08:00:00',
@@ -44,7 +43,6 @@ class JadwalSeeder extends Seeder
 
             $jadwalData[] = [
                 'rute_id' => $ruteRaoPadang->id,
-                'supir_id' => $supirs[1]->id,
                 'armada_id' => $armadas[1]->id,
                 'tanggal_berangkat' => $date,
                 'jam_berangkat' => '20:00:00',
@@ -53,7 +51,6 @@ class JadwalSeeder extends Seeder
             // Jadwal Rao -> Bukittinggi
             $jadwalData[] = [
                 'rute_id' => $ruteRaoBukittinggi->id,
-                'supir_id' => $supirs[2]->id,
                 'armada_id' => $armadas[2]->id,
                 'tanggal_berangkat' => $date,
                 'jam_berangkat' => '09:00:00',
@@ -62,7 +59,6 @@ class JadwalSeeder extends Seeder
             // Jadwal Padang -> Rao
             $jadwalData[] = [
                 'rute_id' => $rutePadangRao->id,
-                'supir_id' => $supirs[3]->id,
                 'armada_id' => $armadas[3]->id,
                 'tanggal_berangkat' => $date,
                 'jam_berangkat' => '08:00:00',
@@ -71,7 +67,6 @@ class JadwalSeeder extends Seeder
             // Jadwal Padang -> Bukittinggi
             $jadwalData[] = [
                 'rute_id' => $rutePadangBukittinggi->id,
-                'supir_id' => $supirs[0]->id,
                 'armada_id' => $armadas[0]->id,
                 'tanggal_berangkat' => $date,
                 'jam_berangkat' => '14:00:00',
@@ -80,7 +75,6 @@ class JadwalSeeder extends Seeder
             // Jadwal Bukittinggi -> Rao
             $jadwalData[] = [
                 'rute_id' => $ruteBukittinggiRao->id,
-                'supir_id' => $supirs[4]->id,
                 'armada_id' => $armadas[4]->id,
                 'tanggal_berangkat' => $date,
                 'jam_berangkat' => '10:00:00',

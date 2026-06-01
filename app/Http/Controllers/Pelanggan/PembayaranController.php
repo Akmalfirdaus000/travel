@@ -15,6 +15,23 @@ use Inertia\Response;
 class PembayaranController extends Controller
 {
     /**
+     * Display customer's payment history.
+     */
+    public function index(): Response
+    {
+        $pembayaran = Pembayaran::with(['pemesanan.jadwal.rute', 'pemesanan.jadwal.armada'])
+            ->whereHas('pemesanan', function ($query) {
+                $query->where('user_id', Auth::id());
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return Inertia::render('pelanggan/pembayaran/index', [
+            'pembayaran' => $pembayaran,
+        ]);
+    }
+
+    /**
      * Show the form for uploading payment proof.
      */
     public function create(Pemesanan $pemesanan)
@@ -24,16 +41,10 @@ class PembayaranController extends Controller
             abort(403);
         }
 
-        // Check if payment already exists
-        if ($pemesanan->pembayaran) {
-            return redirect()->route('pelanggan.pemesanan.show', $pemesanan)
-                ->with('info', 'Bukti pembayaran sudah diunggah. Menunggu verifikasi admin.');
-        }
-
         // Can only pay for pending bookings
         if ($pemesanan->status_bayar === 'lunas') {
             return redirect()->route('pelanggan.pemesanan.show', $pemesanan)
-                ->with('success', 'Pemesanan sudah lunas.');
+                ->with('info', 'Pemesanan sudah lunas.');
         }
 
         if ($pemesanan->status_bayar === 'batal') {
@@ -41,8 +52,11 @@ class PembayaranController extends Controller
                 ->with('error', 'Tidak dapat membayar untuk pemesanan yang dibatalkan.');
         }
 
+        $existingPayment = $pemesanan->pembayaran;
+
         return Inertia::render('pelanggan/pembayaran/create', [
-            'pemesanan' => $pemesanan,
+            'pemesanan' => $pemesanan->load('jadwal.rute'),
+            'existingPayment' => $existingPayment ? true : false,
         ]);
     }
 
@@ -56,12 +70,6 @@ class PembayaranController extends Controller
         // Ensure customer can only pay for their own bookings
         if ($pemesanan->user_id !== Auth::id()) {
             abort(403);
-        }
-
-        // Check if payment already exists
-        if ($pemesanan->pembayaran) {
-            return redirect()->route('pelanggan.pemesanan.show', $pemesanan)
-                ->with('info', 'Bukti pembayaran sudah diunggah. Menunggu verifikasi admin.');
         }
 
         // Upload bukti transfer

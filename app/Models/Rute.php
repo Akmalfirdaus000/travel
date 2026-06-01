@@ -18,6 +18,7 @@ class Rute extends Model
         'kota_asal',
         'kota_tujuan',
         'harga_tiket',
+        'estimasi_waktu_jam',
     ];
 
     protected $casts = [
@@ -32,5 +33,13 @@ class Rute extends Model
     public function jadwal(): HasMany
     {
         return $this->hasMany(Jadwal::class);
+    }
+
+    /**
+     * Relasi ke armada
+     */
+    public function armada(): HasMany
+    {
+        return $this->hasMany(Armada::class);
     }
 }

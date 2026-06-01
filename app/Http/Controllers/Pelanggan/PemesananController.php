@@ -18,17 +18,61 @@ class PemesananController extends Controller
     /**
      * Display a listing of customer's bookings.
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $pelanggan = Auth::user()->pelanggan;
+        $tab = $request->query('tab', 'pesanan');
 
-        $pemesanan = Pemesanan::with(['jadwal.rute', 'jadwal.supir', 'jadwal.armada', 'detailPemesanan', 'pembayaran'])
-            ->where('user_id', Auth::id())
-            ->orderBy('tanggal_pesan', 'desc')
-            ->paginate(10);
+        $expiredBookings = Pemesanan::where('user_id', Auth::id())
+            ->where('status_bayar', '!=', 'lunas')
+            ->whereHas('jadwal', function ($query) {
+                $query->where('tanggal_berangkat', '<', now()->toDateString())
+                      ->orWhere(function ($q) {
+                          $q->where('tanggal_berangkat', '=', now()->toDateString())
+                            ->where('jam_berangkat', '<', now()->toTimeString());
+                      });
+            })->get();
+
+        foreach ($expiredBookings as $expired) {
+            $expired->detailPemesanan()->delete();
+            $expired->pembayaran()->delete();
+            $expired->delete();
+        }
+
+        $query = Pemesanan::where('user_id', Auth::id())
+            ->with(['jadwal.rute', 'jadwal.armada', 'detailPemesanan', 'pembayaran'])
+            ->orderBy('tanggal_pesan', 'desc');
+
+        $pemesananList = $query->orderBy('tanggal_pesan', 'desc')->get()->filter(function ($pesanan) use ($tab) {
+            $jadwal = $pesanan->jadwal;
+            if (!$jadwal || !$jadwal->rute) return $tab !== 'riwayat';
+            
+            $jam = is_string($jadwal->jam_berangkat) ? $jadwal->jam_berangkat : (method_exists($jadwal->jam_berangkat, 'format') ? $jadwal->jam_berangkat->format('H:i:s') : explode(' ', (string)$jadwal->jam_berangkat)[1] ?? (string)$jadwal->jam_berangkat);
+            $berangkat = \Carbon\Carbon::parse($jadwal->tanggal_berangkat->format('Y-m-d') . ' ' . $jam);
+            $estimasi = $jadwal->rute->estimasi_waktu_jam ?? 0;
+            $tiba = $berangkat->copy()->addHours($estimasi);
+            
+            if ($tab === 'riwayat') {
+                return now() > $tiba && $pesanan->status_bayar === 'lunas';
+            } else {
+                return now() <= $tiba;
+            }
+        })->values();
+
+        // Manual pagination
+        $currentPage = \Illuminate\Pagination\Paginator::resolveCurrentPage();
+        $perPage = 10;
+        $pemesanan = new \Illuminate\Pagination\LengthAwarePaginator(
+            $pemesananList->forPage($currentPage, $perPage),
+            $pemesananList->count(),
+            $perPage,
+            $currentPage,
+            ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath(), 'query' => request()->query()]
+        );
 
         return Inertia::render('pelanggan/pemesanan/index', [
             'pemesanan' => $pemesanan,
+            'tab' => $tab,
         ]);
     }
 
@@ -38,7 +82,12 @@ class PemesananController extends Controller
     public function create(Request $Request)
     {
         $jadwalId = $Request->input('jadwal_id');
-        $kursiTerpilih = $Request->input('kursi', []);
+        $kursiInput = $Request->input('kursi');
+
+        // Convert string to array if needed
+        $kursiTerpilih = is_array($kursiInput)
+            ? $kursiInput
+            : (empty($kursiInput) ? [] : array_map('intval', explode(',', $kursiInput)));
 
         if (! $jadwalId || empty($kursiTerpilih)) {
             return redirect()->route('pelanggan.jadwal.index')
@@ -82,9 +131,10 @@ class PemesananController extends Controller
     {
         $jadwal = Jadwal::with('rute')->findOrFail($request->jadwal_id);
 
-        // Generate booking code
-        $latestBooking = Pemesanan::whereDate('created_at', today())->count();
-        $kodeBooking = 'BRN-'.date('Ymd').str_pad($latestBooking + 1, 3, '0', STR_PAD_LEFT);
+        // Generate booking code safely
+        $latestBooking = Pemesanan::whereDate('created_at', today())->orderBy('id', 'desc')->first();
+        $lastSequence = $latestBooking ? (int) substr($latestBooking->kode_booking, -3) : 0;
+        $kodeBooking = 'BRN-'.date('Ymd').str_pad($lastSequence + 1, 3, '0', STR_PAD_LEFT);
 
         $pemesanan = Pemesanan::create([
             'user_id' => Auth::id(),
@@ -117,7 +167,7 @@ class PemesananController extends Controller
             abort(403);
         }
 
-        $pemesanan->load(['jadwal.rute', 'jadwal.supir', 'jadwal.armada', 'detailPemesanan', 'pembayaran']);
+        $pemesanan->load(['jadwal.rute', 'jadwal.supir', 'jadwal.armada', 'detailPemesanan', 'pembayaran', 'user.pelanggan']);
 
         return Inertia::render('pelanggan/pemesanan/show', [
             'pemesanan' => $pemesanan,

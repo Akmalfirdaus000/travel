@@ -17,7 +17,6 @@ class Jadwal extends Model
 
     protected $fillable = [
         'rute_id',
-        'supir_id',
         'armada_id',
         'tanggal_berangkat',
         'jam_berangkat',
@@ -39,11 +38,11 @@ class Jadwal extends Model
     }
 
     /**
-     * Relasi ke supir
+     * Relasi ke supir via armada
      */
-    public function supir(): BelongsTo
+    public function supir()
     {
-        return $this->belongsTo(Supir::class);
+        return $this->hasOneThrough(Supir::class, Armada::class, 'id', 'id', 'armada_id', 'supir_id');
     }
 
     /**

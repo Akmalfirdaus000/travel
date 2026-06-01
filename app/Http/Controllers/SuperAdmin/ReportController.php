@@ -96,7 +96,7 @@ class ReportController extends Controller
         $endDate = $request->input('end_date', now()->endOfMonth()->toDateString());
 
         $pendapatan = Pemesanan::where('status_bayar', 'lunas')
-            ->whereBetween('tanggal_pesan', [$startDate, $endDate])
+            ->whereBetween('tanggal_pesan', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
             ->with(['jadwal.rute', 'user.pelanggan'])
             ->orderBy('tanggal_pesan', 'desc')
             ->get();
@@ -132,7 +132,7 @@ class ReportController extends Controller
         $endDate = $request->input('end_date', now()->endOfMonth()->toDateString());
         $status = $request->input('status', 'all');
 
-        $query = Pemesanan::whereBetween('tanggal_pesan', [$startDate, $endDate])
+        $query = Pemesanan::whereBetween('tanggal_pesan', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
             ->with(['jadwal.rute', 'jadwal.armada', 'jadwal.supir', 'user.pelanggan']);
 
         if ($status !== 'all') {
@@ -167,7 +167,7 @@ class ReportController extends Controller
         $endDate = $request->input('end_date', now()->endOfMonth()->toDateString());
 
         $ruteStats = Pemesanan::where('status_bayar', '!=', 'batal')
-            ->whereBetween('tanggal_pesan', [$startDate, $endDate])
+            ->whereBetween('tanggal_pesan', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
             ->whereHas('jadwal.rute')
             ->select(
                 'jadwal_id',
@@ -196,14 +196,17 @@ class ReportController extends Controller
         $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', now()->endOfMonth()->toDateString());
 
-        $supirStats = Jadwal::whereBetween('tanggal_berangkat', [$startDate, $endDate])
-            ->with('supir')
+        $supirStats = DB::table('jadwal')
+            ->join('armada', 'jadwal.armada_id', '=', 'armada.id')
+            ->join('supir', 'armada.supir_id', '=', 'supir.id')
+            ->whereBetween('jadwal.tanggal_berangkat', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
             ->select(
-                'supir_id',
-                DB::raw('COUNT(*) as total_jadwal'),
-                DB::raw('SUM(CASE WHEN tanggal_berangkat < NOW() THEN 1 ELSE 0 END) as jadwal_selesai')
+                'supir.id as supir_id',
+                'supir.nama_supir',
+                DB::raw('COUNT(jadwal.id) as total_jadwal'),
+                DB::raw('SUM(CASE WHEN jadwal.tanggal_berangkat < NOW() THEN 1 ELSE 0 END) as jadwal_selesai')
             )
-            ->groupBy('supir_id')
+            ->groupBy('supir.id', 'supir.nama_supir')
             ->get()
             ->map(function ($item) {
                 $persentase = $item->total_jadwal > 0
@@ -211,9 +214,9 @@ class ReportController extends Controller
                     : 0;
 
                 return [
-                    'nama_supir' => $item->supir->nama_supir,
-                    'total_jadwal' => $item->total_jadwal,
-                    'jadwal_selesai' => $item->jadwal_selesai,
+                    'nama_supir' => $item->nama_supir,
+                    'total_jadwal' => (int) $item->total_jadwal,
+                    'jadwal_selesai' => (int) $item->jadwal_selesai,
                     'persentase' => $persentase,
                 ];
             });
@@ -235,7 +238,7 @@ class ReportController extends Controller
         $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', now()->endOfMonth()->toDateString());
 
-        $armadaStats = Jadwal::whereBetween('tanggal_berangkat', [$startDate, $endDate])
+        $armadaStats = Jadwal::whereBetween('tanggal_berangkat', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
             ->with('armada')
             ->select(
                 'armada_id',
@@ -301,19 +304,160 @@ class ReportController extends Controller
         ]);
     }
 
-    /**
-     * Export report to PDF/Excel placeholder.
-     */
-    public function export(Request $request): array
+    public function export(Request $request)
     {
         $type = $request->input('type', 'pendapatan');
-        $format = $request->input('format', 'pdf');
-
-        // TODO: Implement export functionality
-        return [
-            'message' => 'Export functionality will be implemented.',
-            'type' => $type,
-            'format' => $format,
-        ];
+        
+        $startDate = $request->input('start_date', now()->startOfMonth()->toDateString());
+        $endDate = $request->input('end_date', now()->endOfMonth()->toDateString());
+        
+        $table = '';
+        $summary = [];
+        $title = 'Laporan';
+        
+        if ($type === 'pendapatan') {
+            $title = 'Laporan Pendapatan';
+            $pendapatan = Pemesanan::with(['user', 'jadwal.rute'])
+                ->where('status_bayar', 'lunas')
+                ->whereBetween('tanggal_pesan', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+                ->orderByDesc('tanggal_pesan')
+                ->get();
+            
+            $summary = [
+                'Total Pendapatan (Rp)' => $pendapatan->sum('total_bayar'),
+                'Total Transaksi' => $pendapatan->count(),
+            ];
+            
+            $table = '<table><thead><tr><th>Kode Booking</th><th>Tanggal</th><th>Pelanggan</th><th>Rute</th><th class="text-right">Nominal</th></tr></thead><tbody>';
+            foreach ($pendapatan as $item) {
+                $table .= '<tr><td>' . $item->kode_booking . '</td><td>' . $item->tanggal_pesan->format('d M Y H:i') . '</td><td>' . $item->user->name . '</td><td>' . $item->jadwal->rute->kota_asal . ' - ' . $item->jadwal->rute->kota_tujuan . '</td><td class="text-right">Rp ' . number_format($item->total_bayar, 0, ',', '.') . '</td></tr>';
+            }
+            $table .= '</tbody></table>';
+        } elseif ($type === 'pemesanan') {
+            $title = 'Laporan Pemesanan';
+            $status = $request->input('status', 'all');
+            
+            $query = Pemesanan::with(['user', 'jadwal.rute'])
+                ->whereBetween('tanggal_pesan', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+                ->orderByDesc('tanggal_pesan');
+                
+            if ($status !== 'all') {
+                $query->where('status_bayar', $status);
+            }
+            
+            $pemesanan = $query->get();
+            
+            $summary = [
+                'Total Pesanan' => $pemesanan->count(),
+                'Total Nominal (Rp)' => $pemesanan->sum('total_bayar'),
+            ];
+            
+            $table = '<table><thead><tr><th>Kode Booking</th><th>Waktu</th><th>Pelanggan</th><th>Rute</th><th>Nominal</th><th>Status</th></tr></thead><tbody>';
+            foreach ($pemesanan as $item) {
+                $table .= '<tr><td>' . $item->kode_booking . '</td><td>' . $item->tanggal_pesan->format('d M Y H:i') . '</td><td>' . $item->user->name . '</td><td>' . $item->jadwal->rute->kota_asal . ' - ' . $item->jadwal->rute->kota_tujuan . '</td><td>Rp ' . number_format($item->total_bayar, 0, ',', '.') . '</td><td>' . strtoupper($item->status_bayar) . '</td></tr>';
+            }
+            $table .= '</tbody></table>';
+        } elseif ($type === 'rute-terpopuler') {
+            $title = 'Laporan Rute Terpopuler';
+            $ruteStats = Pemesanan::where('status_bayar', '!=', 'batal')
+                ->whereBetween('tanggal_pesan', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+                ->whereHas('jadwal.rute')
+                ->select(
+                    'jadwal_id',
+                    DB::raw('COUNT(*) as total_pemesanan'),
+                    DB::raw('SUM(total_bayar) as total_pendapatan')
+                )
+                ->with('jadwal.rute')
+                ->groupBy('jadwal_id')
+                ->orderByDesc('total_pemesanan')
+                ->get();
+                
+            $summary = [
+                'Total Rute Aktif' => $ruteStats->count(),
+                'Total Pemesanan' => $ruteStats->sum('total_pemesanan'),
+                'Total Pendapatan (Rp)' => $ruteStats->sum('total_pendapatan'),
+            ];
+            
+            $table = '<table><thead><tr><th>Peringkat</th><th>Rute</th><th>Total Pesanan</th><th class="text-right">Total Pendapatan</th></tr></thead><tbody>';
+            foreach ($ruteStats as $index => $item) {
+                $rute = $item->jadwal->rute;
+                $table .= '<tr><td>' . ($index + 1) . '</td><td>' . $rute->kota_asal . ' - ' . $rute->kota_tujuan . '</td><td>' . $item->total_pemesanan . '</td><td class="text-right">Rp ' . number_format($item->total_pendapatan, 0, ',', '.') . '</td></tr>';
+            }
+            $table .= '</tbody></table>';
+        } elseif ($type === 'supir-performa') {
+            $title = 'Laporan Performa Supir';
+            $supirStats = DB::table('jadwal')
+                ->join('armada', 'jadwal.armada_id', '=', 'armada.id')
+                ->join('supir', 'armada.supir_id', '=', 'supir.id')
+                ->whereBetween('jadwal.tanggal_berangkat', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+                ->select(
+                    'supir.id as supir_id',
+                    'supir.nama_supir',
+                    DB::raw('COUNT(jadwal.id) as total_jadwal'),
+                    DB::raw('SUM(CASE WHEN jadwal.tanggal_berangkat < NOW() THEN 1 ELSE 0 END) as jadwal_selesai')
+                )
+                ->groupBy('supir.id', 'supir.nama_supir')
+                ->get();
+                
+            $table = '<table><thead><tr><th>Nama Supir</th><th>Total Ditugaskan</th><th>Selesai</th><th>Belum Selesai</th><th>Tingkat Penyelesaian</th></tr></thead><tbody>';
+            foreach ($supirStats as $item) {
+                $persen = $item->total_jadwal > 0 ? round(($item->jadwal_selesai / $item->total_jadwal) * 100, 2) : 0;
+                $belum = $item->total_jadwal - $item->jadwal_selesai;
+                $table .= '<tr><td>' . $item->nama_supir . '</td><td>' . $item->total_jadwal . '</td><td>' . $item->jadwal_selesai . '</td><td>' . $belum . '</td><td>' . $persen . '%</td></tr>';
+            }
+            $table .= '</tbody></table>';
+        } elseif ($type === 'armada-utilisasi') {
+            $title = 'Laporan Utilisasi Armada';
+            $armadaStats = Jadwal::whereBetween('tanggal_berangkat', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+                ->with('armada')
+                ->select(
+                    'armada_id',
+                    DB::raw('COUNT(*) as total_jadwal'),
+                    DB::raw('COUNT(DISTINCT tanggal_berangkat) as total_hari')
+                )
+                ->groupBy('armada_id')
+                ->get();
+                
+            $table = '<table><thead><tr><th>Plat Nomor</th><th>Tipe Mobil</th><th>Total Hari Beroperasi</th><th>Total Trip</th><th>Rata-rata Trip/Hari</th></tr></thead><tbody>';
+            foreach ($armadaStats as $item) {
+                $avg = $item->total_hari > 0 ? number_format($item->total_jadwal / $item->total_hari, 1) : '0.0';
+                $table .= '<tr><td>' . $item->armada->plat_nomor . '</td><td>' . $item->armada->tipe_mobil . '</td><td>' . $item->total_hari . ' Hari</td><td>' . $item->total_jadwal . '</td><td>' . $avg . '</td></tr>';
+            }
+            $table .= '</tbody></table>';
+        } elseif ($type === 'bulanan') {
+            $year = $request->input('year', date('Y'));
+            $title = 'Laporan Rekapitulasi Bulanan ' . $year;
+            $monthlyData = [];
+            
+            for ($month = 1; $month <= 12; $month++) {
+                $start = \Carbon\Carbon::create($year, $month, 1)->startOfMonth();
+                $end = \Carbon\Carbon::create($year, $month, 1)->endOfMonth();
+    
+                $stats = Pemesanan::where('status_bayar', 'lunas')
+                    ->whereBetween('tanggal_pesan', [$start, $end])
+                    ->select(
+                        DB::raw('COUNT(*) as total_pemesanan'),
+                        DB::raw('SUM(total_bayar) as total_pendapatan')
+                    )
+                    ->first();
+    
+                $monthlyData[] = [
+                    'bulan' => $start->translatedFormat('F'),
+                    'total_pemesanan' => $stats->total_pemesanan ?? 0,
+                    'total_pendapatan' => $stats->total_pendapatan ?? 0,
+                ];
+            }
+            
+            $table = '<table><thead><tr><th>Bulan</th><th>Total Pemesanan</th><th class="text-right">Total Pendapatan</th></tr></thead><tbody>';
+            foreach ($monthlyData as $item) {
+                $table .= '<tr><td>' . $item['bulan'] . '</td><td>' . $item['total_pemesanan'] . '</td><td class="text-right">Rp ' . number_format($item['total_pendapatan'], 0, ',', '.') . '</td></tr>';
+            }
+            $table .= '</tbody></table>';
+        }
+        
+        $html = view('exports.report', compact('title', 'summary', 'table'))->render();
+        return response($html)
+            ->header('Content-Type', 'text/html')
+            ->header('Content-Disposition', 'attachment; filename="laporan-'.$type.'.html"');
     }
 }

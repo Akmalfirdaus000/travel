@@ -17,7 +17,7 @@ class JadwalController extends Controller
     public function index(Request $request): Response
     {
         $query = Jadwal::with(['rute', 'armada', 'supir'])
-            ->where('tanggal_berangkat', '>=', now()->toDateString())
+            ->whereRaw('CONCAT(DATE(tanggal_berangkat), " ", jam_berangkat) >= ?', [now()->format('Y-m-d H:i:s')])
             ->orderBy('tanggal_berangkat', 'asc')
             ->orderBy('jam_berangkat', 'asc');
 
@@ -78,6 +78,11 @@ class JadwalController extends Controller
      */
     public function show(Jadwal $jadwal): Response
     {
+        $departureDateTime = \Carbon\Carbon::parse($jadwal->tanggal_berangkat->format('Y-m-d') . ' ' . $jadwal->jam_berangkat->format('H:i:s'));
+        if ($departureDateTime->isPast()) {
+            abort(404, 'Jadwal perjalanan ini sudah tidak tersedia.');
+        }
+
         $jadwal->load(['rute', 'supir', 'armada']);
 
         // Get booked seats for this schedule

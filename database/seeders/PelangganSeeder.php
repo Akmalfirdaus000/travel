@@ -61,8 +61,5 @@ class PelangganSeeder extends Seeder
                 'jenis_kelamin' => $jenisKelamin,
             ]);
         }
-
-        // Create random pelanggan
-        Pelanggan::factory(10)->create();
     }
 }
